@@ -19,6 +19,7 @@ import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { useAuth } from '@/hooks/useAuth';
 import { useColor } from '@/hooks/useColor';
 import { getApiErrorMessage } from '@/api/client';
+import { useTranslation } from 'react-i18next';
 
 type Language = 'en' | 'uz' | 'ru';
 const LANGUAGES: { value: Language; label: string }[] = [
@@ -31,6 +32,7 @@ export default function RegisterScreen() {
   const { register } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t, i18n } = useTranslation();
 
   // Theme
   const bg = useColor('background');
@@ -45,7 +47,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [tenantName, setTenantName] = useState('');
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>(i18n.language as Language);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,11 +59,11 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     setError('');
-    if (!fullName.trim()) { setError('Full name is required'); return; }
-    if (!tenantName.trim()) { setError('Business name is required'); return; }
-    if (!phone.trim()) { setError('Phone number is required'); return; }
-    if (!password.trim()) { setError('Password is required'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (!fullName.trim()) { setError(t('auth.errors.fullNameRequired')); return; }
+    if (!tenantName.trim()) { setError(t('auth.errors.businessNameRequired')); return; }
+    if (!phone.trim()) { setError(t('auth.errors.phoneRequired')); return; }
+    if (!password.trim()) { setError(t('auth.errors.passwordRequired')); return; }
+    if (password.length < 6) { setError(t('auth.errors.passwordLength')); return; }
 
     setLoading(true);
     try {
@@ -71,6 +73,11 @@ export default function RegisterScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const changeLanguage = (lang: Language) => {
+    setLanguage(lang);
+    i18n.changeLanguage(lang);
   };
 
   return (
@@ -98,18 +105,17 @@ export default function RegisterScreen() {
         >
           <ChevronLeft size={22} color={primary} />
           <Text style={{ color: primary, fontSize: 17, fontWeight: '500' }}>
-            Back
+            {t('auth.back')}
           </Text>
         </Pressable>
 
         {/* ── Header ──────────────────────────────────────────────── */}
         <View style={{ marginBottom: 36 }}>
           <Text variant="heading" style={{ marginBottom: 8 }}>
-            Create account
+            {t('auth.createAccount')}
           </Text>
           <Text variant="caption" style={{ fontSize: 17, lineHeight: 24 }}>
-            Set up your POS business in under a minute.{'\n'}
-            You'll get a 30-day free trial.
+            {t('auth.registerDescription')}
           </Text>
         </View>
 
@@ -117,9 +123,8 @@ export default function RegisterScreen() {
         <View style={{ gap: 12, marginBottom: 24 }}>
           {/* Business Info */}
           <Input
-            label="Your Name"
             icon={User}
-            placeholder="John Doe"
+            placeholder={t('auth.fullName')}
             value={fullName}
             onChangeText={setFullName}
             autoCapitalize="words"
@@ -131,9 +136,8 @@ export default function RegisterScreen() {
 
           <Input
             ref={tenantNameRef}
-            label="Business"
             icon={Store}
-            placeholder="My Store"
+            placeholder={t('auth.businessName')}
             value={tenantName}
             onChangeText={setTenantName}
             autoCapitalize="words"
@@ -145,7 +149,6 @@ export default function RegisterScreen() {
           {/* Credentials */}
           <Input
             ref={fullNameRef}
-            label="Phone"
             icon={Phone}
             placeholder="+998 90 123 45 67"
             value={phone}
@@ -160,9 +163,8 @@ export default function RegisterScreen() {
 
           <Input
             ref={passwordRef}
-            label="Password"
             icon={Lock}
-            placeholder="Min 6 characters"
+            placeholder={t('auth.minCharacters')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -189,7 +191,7 @@ export default function RegisterScreen() {
           <View style={{ gap: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 4 }}>
               <Globe size={15} color={muted} />
-              <Text variant="caption">Language</Text>
+              <Text variant="caption">{t('auth.language')}</Text>
             </View>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {LANGUAGES.map((lang) => {
@@ -197,7 +199,7 @@ export default function RegisterScreen() {
                 return (
                   <Pressable
                     key={lang.value}
-                    onPress={() => setLanguage(lang.value)}
+                    onPress={() => changeLanguage(lang.value)}
                     style={{
                       flex: 1,
                       paddingVertical: 10,
@@ -249,13 +251,13 @@ export default function RegisterScreen() {
           disabled={loading}
           style={{ marginBottom: 16 }}
         >
-          Create Account
+          {t('auth.createAccount')}
         </Button>
 
         {/* ── Footer ──────────────────────────────────────────────── */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
           <Text variant="caption" style={{ fontSize: 15 }}>
-            Already have an account?
+            {t('auth.alreadyHaveAccount')}
           </Text>
           <Pressable onPress={() => router.back()}>
             <Text
@@ -265,7 +267,7 @@ export default function RegisterScreen() {
                 color: primary,
               }}
             >
-              Sign In
+              {t('auth.signIn')}
             </Text>
           </Pressable>
         </View>

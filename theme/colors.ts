@@ -40,7 +40,7 @@ export const lightColors = {
   popoverForeground: '#000000',
 
   // Primary colors
-  primary: '#4304f0ff',
+  primary: '#0457f0ff',
   primaryForeground: '#fcfafaff',
 
   // Secondary colors
@@ -116,7 +116,7 @@ export const darkColors = {
   popoverForeground: '#FFFFFF',
 
   // Primary colors
-  primary: '#4304f0ff',
+  primary: '#0540afff',
   primaryForeground: '#fcfafaff',
 
   // Secondary colors

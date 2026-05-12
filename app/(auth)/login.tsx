@@ -10,11 +10,13 @@ import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { useAuth } from '@/hooks/useAuth';
 import { useColor } from '@/hooks/useColor';
 import { getApiErrorMessage } from '@/api/client';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginScreen() {
   const { login } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   // Theme
   const bg = useColor('background');
@@ -35,9 +37,9 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     setError('');
-    if (!phone.trim()) { setError('Phone number is required'); return; }
-    if (!password.trim()) { setError('Password is required'); return; }
-    if (password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (!phone.trim()) { setError(t('auth.errors.phoneRequired')); return; }
+    if (!password.trim()) { setError(t('auth.errors.passwordRequired')); return; }
+    if (password.length < 6) { setError(t('auth.errors.passwordLength')); return; }
 
     setLoading(true);
     try {
@@ -79,17 +81,16 @@ export default function LoginScreen() {
           </View>
 
           <Text variant="heading" style={{ marginBottom: 8 }}>
-            Welcome back
+            {t('auth.welcome')}
           </Text>
           <Text variant="caption" style={{ fontSize: 17, lineHeight: 24 }}>
-            Sign in to your POS account to manage your business.
+            {t('auth.loginDescription')}
           </Text>
         </View>
 
         {/* ── Form ────────────────────────────────────────────────── */}
         <View style={{ gap: 12, marginBottom: 24 }}>
           <Input
-            label="Phone"
             icon={Phone}
             placeholder="+998 90 123 45 67"
             value={phone}
@@ -104,9 +105,8 @@ export default function LoginScreen() {
 
           <Input
             ref={passwordRef}
-            label="Password"
             icon={Lock}
-            placeholder="Enter password"
+            placeholder={t('auth.enterPassword')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -154,13 +154,13 @@ export default function LoginScreen() {
           disabled={loading}
           style={{ marginBottom: 16 }}
         >
-          Sign In
+          {t('auth.signIn')}
         </Button>
 
         {/* ── Footer ──────────────────────────────────────────────── */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4 }}>
           <Text variant="caption" style={{ fontSize: 15 }}>
-            Don't have an account?
+            {t('auth.dontHaveAccount')}
           </Text>
           <Pressable onPress={() => router.push('/(auth)/register')}>
             <Text
@@ -170,7 +170,7 @@ export default function LoginScreen() {
                 color: primary,
               }}
             >
-              Sign Up
+              {t('auth.signUp')}
             </Text>
           </Pressable>
         </View>

@@ -12,7 +12,7 @@ export default function HomeLayout() {
   return (
     <Stack
       screenOptions={{
-        headerLargeTitle: true,
+        headerLargeTitle: false,
         headerLargeTitleShadowVisible: false,
         headerTransparent: true,
         headerTintColor: text,
@@ -31,11 +31,7 @@ export default function HomeLayout() {
       <Stack.Screen
         name='index'
         options={{
-          title: 'Home',
-          headerTitle: () =>
-            Platform.OS === 'android' ? (
-              <Text variant='heading'>Home</Text>
-            ) : undefined,
+          headerShown: false,
         }}
       />
     </Stack>
