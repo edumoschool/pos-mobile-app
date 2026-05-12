@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1017169276405",
+    "project_id": "pos-system-63bca",
+    "storage_bucket": "pos-system-63bca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017169276405:android:e968c4d735c81666c6c4bc",
+        "android_client_info": {
+          "package_name": "uz.pos_system.edumo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByD49noZue43mnrHf6_8b3iYzR_OYBR7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
