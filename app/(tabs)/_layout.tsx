@@ -2,13 +2,9 @@ import { Platform } from 'react-native';
 import { useColor } from '@/hooks/useColor';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import MaterialIcons from '@expo/vector-icons/Feather';
-import {
-  Badge,
-  Icon,
-  Label,
-  NativeTabs,
-  VectorIcon,
-} from 'expo-router/unstable-native-tabs';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
+
+const { Badge, Icon, Label, VectorIcon } = NativeTabs.Trigger;
 
 export default function TabsLayout() {
   const red = useColor('red');
