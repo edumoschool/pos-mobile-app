@@ -27,6 +27,11 @@ export default {
       registerFailed: "Ro'yxatdan o'tishda xatolik yuz berdi"
     }
   },
+  tabs: {
+    home: "Asosiy",
+    products: "Mahsulotlar",
+    settings: "Sozlamalar",
+  },
   common: {
     save: "Saqlash",
     cancel: "Bekor qilish",
@@ -59,5 +64,60 @@ export default {
       asc: "O'suvchi",
       desc: "Kamayuvchi"
     }
+  },
+  clientDetail: {
+    title: "Mijoz ma'lumotlari",
+    balanceUzs: "Umumiy balans (UZS)",
+    balanceUsd: "USD Balans",
+    history: "Tranzaksiyalar tarixi",
+    noHistory: "Tranzaksiyalar mavjud emas",
+    giveDebt: "Qarz berish",
+    receivePayment: "To'lov olish",
+    address: "Manzil",
+    notes: "Eslatma",
+    paymentReceived: "To'lov qabul qilindi",
+    debtIssued: "Qarz berildi",
+    call: "Qo'ng'iroq qilish",
+    noPhone: "Telefon raqami yo'q"
+  },
+  inventory: {
+    title: "Inventarizatsiya",
+    totalItems: "Jami tovarlar",
+    lowStock: "Kam qolgan",
+    outOfStock: "Tugagan",
+    totalValue: "Umumiy qiymat",
+    overview: "Umumiy ma'lumot",
+    recentActivity: "Oxirgi harakatlar",
+    viewAll: "Hammasini ko'rish",
+  },
+  products: {
+    title: "Mahsulotlar",
+    searchPlaceholder: "Mahsulot qidirish...",
+    allCategories: "Barcha kategoriyalar",
+    inStock: "Mavjud",
+    lowStock: "Kam qolgan",
+    outOfStock: "Tugagan",
+    addProduct: "Mahsulot qo'shish",
+    productImage: "Mahsulot rasmi",
+    uploadImage: "Rasm yuklash uchun bosing",
+    productName: "Mahsulot nomi",
+    sku: "SKU",
+    category: "Kategoriya",
+    purchasePrice: "Sotib olish narxi",
+    sellingPrice: "Sotish narxi",
+    initialStock: "Boshlang'ich qoldiq",
+    saveProduct: "Mahsulotni saqlash",
+    editProduct: "Tahrirlash",
+    stockQuantity: "Qoldiq miqdori",
+    available: "Mavjud",
+    reserved: "Band qilingan",
+    reorderLevel: "Minimal qoldiq",
+    pricing: "Narxlar",
+    supplier: "Ta'minotchi",
+    description: "Tavsif",
+    items: "ta mahsulot",
+    uncategorized: "Kategoriyasiz",
+    emptyTitle: "Mahsulotlar yo'q",
+    emptySubtitle: "Birinchi mahsulotingizni qo'shish uchun quyidagi tugmani bosing",
   }
 };

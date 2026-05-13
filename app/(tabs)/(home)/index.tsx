@@ -348,14 +348,21 @@ export default function HomeScreen() {
               return <ActivityIndicator size="small" color={primary} style={{ marginVertical: 16 }} />;
             }}
             renderItem={({ item }) => (
-              <View style={{
-                backgroundColor: card,
-                padding: 12,
-                borderRadius: 12,
-                marginBottom: 8,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
+              <TouchableOpacity 
+                onPress={() => {
+                  if (selectedIndex === 0) {
+                    router.push(`/clients/${item.id}` as any);
+                  }
+                }}
+                style={{
+                  backgroundColor: card,
+                  padding: 12,
+                  borderRadius: 12,
+                  marginBottom: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
                 {/* Left Icon (Avatar) */}
                 <Avatar size={40} style={{ marginRight: 12 }}>
                   {item.avatarUrl && <AvatarImage source={{ uri: item.avatarUrl }} style={{ width: '100%', height: '100%' }} />}
@@ -385,7 +392,7 @@ export default function HomeScreen() {
                   </Text>
                   <Text style={{ fontSize: 11, color: muted }}>{item.subtext}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             )}
             ListEmptyComponent={() => (
               <View style={{ padding: 40, alignItems: 'center', marginTop: 20 }}>

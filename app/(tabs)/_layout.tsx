@@ -1,12 +1,13 @@
 import { Platform } from 'react-native';
 import { useColor } from '@/hooks/useColor';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
+import { useTranslation } from 'react-i18next';
 import MaterialIcons from '@expo/vector-icons/Feather';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 const { Badge, Icon, Label, VectorIcon } = NativeTabs.Trigger;
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   const red = useColor('red');
   const primary = useColor('primary');
   const foreground = useColor('foreground');
@@ -33,7 +34,17 @@ export default function TabsLayout() {
             <Icon src={<VectorIcon family={MaterialIcons} name='home' />} />
           ),
         })}
-        <Label>Home</Label>
+        <Label>{t('tabs.home')}</Label>
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name='products'>
+        {Platform.select({
+          ios: <Icon sf='archivebox.fill' />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialIcons} name='package' />} />
+          ),
+        })}
+        <Label>{t('tabs.products')}</Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name='settings'>
@@ -43,22 +54,8 @@ export default function TabsLayout() {
             <Icon src={<VectorIcon family={MaterialIcons} name='settings' />} />
           ),
         })}
-        <Label>Settings</Label>
-        <Badge>1</Badge>
-      </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger
-        name='search'
-        role={isLiquidGlassAvailable() ? 'search' : undefined}
-      >
-        {Platform.select({
-          ios: <Icon sf='magnifyingglass' />,
-          android: (
-            <Icon src={<VectorIcon family={MaterialIcons} name='search' />} />
-          ),
-        })}
-        <Label>Search</Label>
-      </NativeTabs.Trigger>
+        <Label>{t('tabs.settings')}</Label>
+        </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

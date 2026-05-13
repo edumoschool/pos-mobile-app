@@ -27,6 +27,11 @@ export default {
       registerFailed: "Ошибка регистрации"
     }
   },
+  tabs: {
+    home: "Главная",
+    products: "Товары",
+    settings: "Настройки",
+  },
   common: {
     save: "Сохранить",
     cancel: "Отмена",
@@ -59,5 +64,60 @@ export default {
       asc: "По возрастанию",
       desc: "По убыванию"
     }
+  },
+  clientDetail: {
+    title: "Данные клиента",
+    balanceUzs: "Общий баланс (UZS)",
+    balanceUsd: "Баланс USD",
+    history: "История транзакций",
+    noHistory: "Транзакции не найдены",
+    giveDebt: "Дать в долг",
+    receivePayment: "Принять оплату",
+    address: "Адрес",
+    notes: "Заметка",
+    paymentReceived: "Оплата принята",
+    debtIssued: "Долг выдан",
+    call: "Позвонить",
+    noPhone: "Нет номера телефона"
+  },
+  inventory: {
+    title: "Инвентаризация",
+    totalItems: "Всего товаров",
+    lowStock: "Мало в наличии",
+    outOfStock: "Нет в наличии",
+    totalValue: "Общая стоимость",
+    overview: "Обзор",
+    recentActivity: "Последние действия",
+    viewAll: "Посмотреть все",
+  },
+  products: {
+    title: "Товары",
+    searchPlaceholder: "Поиск товаров...",
+    allCategories: "Все категории",
+    inStock: "В наличии",
+    lowStock: "Мало",
+    outOfStock: "Нет в наличии",
+    addProduct: "Добавить товар",
+    productImage: "Изображение товара",
+    uploadImage: "Нажмите для загрузки",
+    productName: "Название товара",
+    sku: "SKU",
+    category: "Категория",
+    purchasePrice: "Цена закупки",
+    sellingPrice: "Цена продажи",
+    initialStock: "Начальный остаток",
+    saveProduct: "Сохранить товар",
+    editProduct: "Изменить",
+    stockQuantity: "Количество на складе",
+    available: "Доступно",
+    reserved: "Зарезервировано",
+    reorderLevel: "Мин. остаток",
+    pricing: "Цены",
+    supplier: "Поставщик",
+    description: "Описание",
+    items: "товаров",
+    uncategorized: "Без категории",
+    emptyTitle: "Товаров пока нет",
+    emptySubtitle: "Нажмите кнопку ниже, чтобы добавить первый товар",
   }
 };

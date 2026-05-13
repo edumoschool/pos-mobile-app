@@ -27,6 +27,11 @@ export default {
       registerFailed: "Registration failed"
     }
   },
+  tabs: {
+    home: "Home",
+    products: "Products",
+    settings: "Settings",
+  },
   common: {
     save: "Save",
     cancel: "Cancel",
@@ -59,5 +64,60 @@ export default {
       asc: "Ascending",
       desc: "Descending"
     }
+  },
+  clientDetail: {
+    title: "Client Details",
+    balanceUzs: "Total Balance (UZS)",
+    balanceUsd: "USD Balance",
+    history: "Transaction History",
+    noHistory: "No transactions found",
+    giveDebt: "Give Debt",
+    receivePayment: "Receive Payment",
+    address: "Address",
+    notes: "Notes",
+    paymentReceived: "Payment Received",
+    debtIssued: "Debt Issued",
+    call: "Call",
+    noPhone: "No phone number"
+  },
+  inventory: {
+    title: "Inventory",
+    totalItems: "Total Items",
+    lowStock: "Low Stock",
+    outOfStock: "Out of Stock",
+    totalValue: "Total Value",
+    overview: "Overview",
+    recentActivity: "Recent Activity",
+    viewAll: "View All",
+  },
+  products: {
+    title: "Products",
+    searchPlaceholder: "Search products...",
+    allCategories: "All Categories",
+    inStock: "In Stock",
+    lowStock: "Low Stock",
+    outOfStock: "Out of Stock",
+    addProduct: "Add Product",
+    productImage: "Product Image",
+    uploadImage: "Tap to upload image",
+    productName: "Product Name",
+    sku: "SKU",
+    category: "Category",
+    purchasePrice: "Purchase Price",
+    sellingPrice: "Selling Price",
+    initialStock: "Initial Stock",
+    saveProduct: "Save Product",
+    editProduct: "Edit",
+    stockQuantity: "Stock Quantity",
+    available: "Available",
+    reserved: "Reserved",
+    reorderLevel: "Reorder Level",
+    pricing: "Pricing",
+    supplier: "Supplier",
+    description: "Description",
+    items: "items",
+    uncategorized: "Uncategorized",
+    emptyTitle: "No products yet",
+    emptySubtitle: "Tap the button below to add your first product",
   }
 };

@@ -4,8 +4,6 @@ import { ThemeProvider } from '@/theme/theme-provider';
 import { AuthProvider } from '@/hooks/useAuth';
 import { QueryProvider } from '@/hooks/useQueryProvider';
 import { ToastProvider } from '@/components/ui/toast';
-import { osName } from 'expo-device';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
 import * as NavigationBar from 'expo-navigation-bar';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -51,45 +49,8 @@ export default function RootLayout() {
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name='(auth)' options={{ headerShown: false }} />
                 <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-
-                <Stack.Screen
-                  name='sheet'
-                  options={{
-                    headerShown: false,
-                    sheetGrabberVisible: true,
-                    sheetAllowedDetents: [0.4, 0.7, 1],
-                    contentStyle: {
-                      backgroundColor: isLiquidGlassAvailable()
-                        ? 'transparent'
-                        : colorScheme === 'dark'
-                        ? Colors.dark.card
-                        : Colors.light.card,
-                    },
-                    headerTransparent: Platform.OS === 'ios' ? true : false,
-                    headerLargeTitle: false,
-                    title: '',
-                    presentation:
-                      Platform.OS === 'ios'
-                        ? isLiquidGlassAvailable() && osName !== 'iPadOS'
-                          ? 'formSheet'
-                          : 'modal'
-                        : 'modal',
-                    sheetInitialDetentIndex: 0,
-                    headerStyle: {
-                      backgroundColor:
-                        Platform.OS === 'ios'
-                          ? 'transparent'
-                          : colorScheme === 'dark'
-                          ? Colors.dark.card
-                          : Colors.light.card,
-                    },
-                    headerBlurEffect: isLiquidGlassAvailable()
-                      ? undefined
-                      : colorScheme === 'dark'
-                      ? 'dark'
-                      : 'light',
-                  }}
-                />
+                <Stack.Screen name='products/new' options={{ headerShown: false }} />
+                <Stack.Screen name='products/[id]/index' options={{ headerShown: false }} />
                 <Stack.Screen name='+not-found' />
               </Stack>
             </AuthProvider>
