@@ -14,7 +14,8 @@ import {
   Bell,
   Layers,
   Package,
-  User
+  User,
+  Download
 } from 'lucide-react-native';
 import SegmentedControl from '@expo/ui/community/segmented-control';
 import { FlashList } from '@shopify/flash-list';
@@ -28,7 +29,7 @@ import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
 import { usersApi } from '@/api/users';
-import { ActivityIndicator, Keyboard, Alert } from 'react-native';
+import { ActivityIndicator, Keyboard, Alert, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
 
@@ -125,6 +126,29 @@ export default function HomeScreen() {
       Keyboard.dismiss();
     }
   });
+
+  const downloadExcelMutation = useMutation({
+    mutationFn: async () => {
+      if (selectedIndex === 0) {
+        return clientsApi.exportExcel();
+      } else if (selectedIndex === 1) {
+        return suppliersApi.exportExcel();
+      }
+      throw new Error("Export not supported for this tab");
+    },
+    onSuccess: (data) => {
+      if (data?.url) {
+        Linking.openURL(data.url);
+      }
+    },
+    onError: () => {
+      Alert.alert(t('common.error'), "Eksport qilishda xatolik yuz berdi");
+    }
+  });
+
+  const handleDownloadExcel = () => {
+    downloadExcelMutation.mutate();
+  };
 
   const handleAddClient = () => {
     if (!newClientName) return;
@@ -338,18 +362,26 @@ export default function HomeScreen() {
       <View style={{
         position: 'absolute',
         bottom: insets.bottom + 20,
-        left: 20,
         right: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: 12,
         pointerEvents: 'box-none'
       }}>
+        {(selectedIndex === 0 || selectedIndex === 1) && (
+          <TouchableOpacity 
+            onPress={handleDownloadExcel} 
+            style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}
+          >
+            {downloadExcelMutation.isPending ? (
+              <ActivityIndicator size="small" color={primaryForeground} />
+            ) : (
+              <Download size={20} color={primaryForeground} />
+            )}
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={openAddClient} style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}>
-          <UserPlus size={24} color={primaryForeground} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}>
-          <Bell size={24} color={primaryForeground} />
+          <UserPlus size={20} color={primaryForeground} />
         </TouchableOpacity>
       </View>
 
@@ -431,9 +463,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     shadowOffset: { width: 0, height: 4 },

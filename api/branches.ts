@@ -1,11 +1,11 @@
 import api from './client';
-import type { Branch, CreateBranchPayload, UpdateBranchPayload } from '@/types';
+import type { Branch, CreateBranchPayload, UpdateBranchPayload, PaginatedResponse } from '@/types';
 
 export const branchesApi = {
   /** GET /branches — list all branches (any role) */
   getAll: async (): Promise<Branch[]> => {
-    const res = await api.get<Branch[]>('/branches');
-    return res.data;
+    const res = await api.get<PaginatedResponse<Branch>>('/branches', { params: { limit: 100 } });
+    return res.data.data;
   },
 
   /** GET /branches/:id (any role) */

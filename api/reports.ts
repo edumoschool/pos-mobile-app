@@ -9,6 +9,7 @@ import type {
   ExportReportPayload,
   Report,
   ExportedReportUrl,
+  PaginatedResponse,
 } from '@/types';
 
 export const reportsApi = {
@@ -22,20 +23,20 @@ export const reportsApi = {
 
   /** GET /reports/transactions-by-day?branchId=&from=&to= */
   transactionsByDay: async (query?: DateRangeQuery): Promise<TransactionsByDayItem[]> => {
-    const res = await api.get<TransactionsByDayItem[]>('/reports/transactions-by-day', { params: query });
-    return res.data;
+    const res = await api.get<PaginatedResponse<TransactionsByDayItem>>('/reports/transactions-by-day', { params: { ...query, limit: 1000 } });
+    return res.data.data;
   },
 
   /** GET /reports/expenses-by-category?branchId=&from=&to= */
   expensesByCategory: async (query?: DateRangeQuery): Promise<CategoryBreakdownItem[]> => {
-    const res = await api.get<CategoryBreakdownItem[]>('/reports/expenses-by-category', { params: query });
-    return res.data;
+    const res = await api.get<PaginatedResponse<CategoryBreakdownItem>>('/reports/expenses-by-category', { params: { ...query, limit: 100 } });
+    return res.data.data;
   },
 
   /** GET /reports/income-by-category?branchId=&from=&to= */
   incomeByCategory: async (query?: DateRangeQuery): Promise<CategoryBreakdownItem[]> => {
-    const res = await api.get<CategoryBreakdownItem[]>('/reports/income-by-category', { params: query });
-    return res.data;
+    const res = await api.get<PaginatedResponse<CategoryBreakdownItem>>('/reports/income-by-category', { params: { ...query, limit: 100 } });
+    return res.data.data;
   },
 
   /** GET /reports/inventory — stock values and low-stock items */
@@ -46,14 +47,14 @@ export const reportsApi = {
 
   /** GET /reports/client-balances — all client income/outcome balances */
   clientBalances: async (): Promise<PartyBalanceSummary[]> => {
-    const res = await api.get<PartyBalanceSummary[]>('/reports/client-balances');
-    return res.data;
+    const res = await api.get<PaginatedResponse<PartyBalanceSummary>>('/reports/client-balances', { params: { limit: 1000 } });
+    return res.data.data;
   },
 
   /** GET /reports/supplier-balances — all supplier income/outcome balances */
   supplierBalances: async (): Promise<PartyBalanceSummary[]> => {
-    const res = await api.get<PartyBalanceSummary[]>('/reports/supplier-balances');
-    return res.data;
+    const res = await api.get<PaginatedResponse<PartyBalanceSummary>>('/reports/supplier-balances', { params: { limit: 1000 } });
+    return res.data.data;
   },
 
   /** GET /reports/top-products?limit= — active products list */
@@ -72,8 +73,8 @@ export const reportsApi = {
 
   /** GET /reports/exports — list all previously exported reports */
   listExports: async (): Promise<Report[]> => {
-    const res = await api.get<Report[]>('/reports/exports');
-    return res.data;
+    const res = await api.get<PaginatedResponse<Report>>('/reports/exports', { params: { limit: 100 } });
+    return res.data.data;
   },
 
   /** GET /reports/exports/:id/url — get temporary download URL */
