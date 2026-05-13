@@ -36,10 +36,11 @@ export default {
     save: "Saqlash",
     cancel: "Bekor qilish",
     delete: "O'chirish",
-    error: "Xato",
+    error: "Xatolik",
     success: "Muvaffaqiyatli",
     warning: "Ogohlantirish",
-    filter: "Filtrlash"
+    filter: "Filtrlash",
+    fillRequiredFields: "Iltimos, majburiy maydonlarni to'ldiring"
   },
   home: {
     segments: {
@@ -119,5 +120,19 @@ export default {
     uncategorized: "Kategoriyasiz",
     emptyTitle: "Mahsulotlar yo'q",
     emptySubtitle: "Birinchi mahsulotingizni qo'shish uchun quyidagi tugmani bosing",
+    deleteProduct: "Mahsulotni o'chirish",
+    deleteConfirmation: "Haqiqatan ham bu mahsulotni o'chirib tashlamoqchimisiz? Bu amalni bekor qilib bo'lmaydi.",
+    placeholders: {
+      name: "Mahsulot nomini kiriting",
+      description: "Mahsulot tavsifini kiriting",
+      selectCategory: "Kategoriyani tanlang",
+      selectBrandCategory: "Brend kategoriyasini tanlang",
+      searchCategory: "Kategoriyani qidirish...",
+      searchBrand: "Brendni qidirish..."
+    },
+    currency: "Valyuta",
+    brandCategory: "Brend kategoriyasi",
+    noCategoryFound: "Kategoriya topilmadi.",
+    noBrandFound: "Brend topilmadi."
   }
 };

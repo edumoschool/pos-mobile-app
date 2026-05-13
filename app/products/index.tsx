@@ -3,8 +3,8 @@ import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Image 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { router } from 'expo-router';
-import { Plus, Filter, Package, ChevronDown } from 'lucide-react-native';
+import { router, Stack } from 'expo-router';
+import { Plus, Filter, Package, ChevronDown, ChevronLeft } from 'lucide-react-native';
 import { FlashList } from '@shopify/flash-list';
 
 import { Text } from '@/components/ui/text';
@@ -65,19 +65,25 @@ export default function ProductsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: bg }]}>
-      {/* ── Topbar ──────────────────────────────────────────── */}
-      <View style={[styles.topbar, { paddingTop: insets.top, borderBottomColor: border }]}>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: text }}>{t('products.title')}</Text>
-        <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: primary }]}
-          onPress={() => router.push('/products/new' as any)}
-        >
-          <Plus size={20} color={primaryForeground} />
-        </TouchableOpacity>
-      </View>
-
-      {/* ── Search & Filter ─────────────────────────────────── */}
+    <>
+      <Stack.Screen 
+        options={{
+          headerShown: true,
+          title: t('products.title'),
+          headerStyle: { backgroundColor: bg },
+          headerShadowVisible: true,
+          headerRight: () => (
+            <TouchableOpacity
+              style={[styles.addButton, { backgroundColor: primary }]}
+              onPress={() => router.push('/products/new' as any)}
+            >
+              <Plus size={20} color={primaryForeground} />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+      <View style={[styles.container, { backgroundColor: bg }]}>
+        {/* ── Search & Filter ─────────────────────────────────── */}
       <View style={styles.searchRow}>
         <View style={{ flex: 1 }}>
           <SearchBar
@@ -201,6 +207,7 @@ export default function ProductsScreen() {
         )}
       </View>
     </View>
+    </>
   );
 }
 

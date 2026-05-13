@@ -556,10 +556,11 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   valueText: {
     fontSize: FONT_SIZE,
-    flex: 1,
+    flexShrink: 1,
   },
   chevron: {
     marginLeft: 8,

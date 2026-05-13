@@ -3,12 +3,13 @@ import { View, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndic
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { router } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import { 
   ChevronLeft, 
   Image as ImageIcon, 
   ChevronDown,
-  Upload
+  Upload,
+  Plus
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -19,6 +20,97 @@ import { categoriesApi } from '@/api/catalog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { brandCategoriesApi } from '@/api/catalog';
+import {
+  DropdownMenuItem,
+  ExposedDropdownMenuBox,
+  ExposedDropdownMenu,
+  Host as HostAndroid,
+  Text as TextAndroid,
+  TextField as TextFieldAndroid,
+} from '@expo/ui/jetpack-compose';
+import { menuAnchor } from '@expo/ui/jetpack-compose/modifiers';
+import { Host as HostIOS, Picker as PickerIOS, Text as TextIOS } from '@expo/ui/swift-ui';
+import { pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+
+function NativePicker({ 
+  value, 
+  onValueChange, 
+  options, 
+  placeholder 
+}: { 
+  value: string; 
+  onValueChange: (val: string) => void; 
+  options: { label: string, value: string }[];
+  placeholder: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const selectedLabel = options.find(o => o.value === value)?.label || placeholder;
+
+  if (Platform.OS === 'android') {
+    return (
+      <HostAndroid matchContents>
+        <ExposedDropdownMenuBox expanded={expanded} onExpandedChange={setExpanded}>
+          <TextFieldAndroid
+            defaultValue={selectedLabel}
+            key={value}
+            readOnly
+            modifiers={[menuAnchor()]}
+          />
+          <ExposedDropdownMenu expanded={expanded} onDismissRequest={() => setExpanded(false)}>
+            <DropdownMenuItem
+                key="placeholder"
+                onClick={() => {
+                  onValueChange('');
+                  setExpanded(false);
+                }}>
+                <DropdownMenuItem.Text>
+                  <TextAndroid>{placeholder}</TextAndroid>
+                </DropdownMenuItem.Text>
+              </DropdownMenuItem>
+            {options.map(opt => (
+              <DropdownMenuItem
+                key={opt.value}
+                onClick={() => {
+                  onValueChange(opt.value);
+                  setExpanded(false);
+                }}>
+                <DropdownMenuItem.Text>
+                  <TextAndroid>{opt.label}</TextAndroid>
+                </DropdownMenuItem.Text>
+              </DropdownMenuItem>
+            ))}
+          </ExposedDropdownMenu>
+        </ExposedDropdownMenuBox>
+      </HostAndroid>
+    );
+  }
+
+  if (Platform.OS === 'ios') {
+    return (
+      <HostIOS matchContents>
+        <PickerIOS
+          modifiers={[pickerStyle('menu')]}
+          label={placeholder}
+          selection={value || placeholder}
+          onSelectionChange={selection => {
+            onValueChange(selection === placeholder ? '' : selection);
+          }}>
+          <TextIOS key={placeholder} modifiers={[tag(placeholder)]}>
+            {placeholder}
+          </TextIOS>
+          {options.map(opt => (
+            <TextIOS key={opt.value} modifiers={[tag(opt.value)]}>
+              {opt.label}
+            </TextIOS>
+          ))}
+        </PickerIOS>
+      </HostIOS>
+    );
+  }
+
+  return null;
+}
 
 export default function AddProductScreen() {
   const { t } = useTranslation();
@@ -26,11 +118,14 @@ export default function AddProductScreen() {
   const queryClient = useQueryClient();
 
   const [name, setName] = useState('');
-  const [sku, setSku] = useState('');
+  const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [brandCategoryId, setBrandCategoryId] = useState('');
   const [costPrice, setCostPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
+  const [currency, setCurrency] = useState<'UZS' | 'USD'>('UZS');
   const [quantity, setQuantity] = useState('');
+  const [minQuantity, setMinQuantity] = useState('');
   const [image, setImage] = useState<any>(null);
 
   const bg = useColor('background');
@@ -45,6 +140,11 @@ export default function AddProductScreen() {
   const { data: categories } = useQuery({
     queryKey: ['categories'],
     queryFn: () => categoriesApi.getAll(),
+  });
+
+  const { data: brandCategories } = useQuery({
+    queryKey: ['brandCategories'],
+    queryFn: () => brandCategoriesApi.getAll(),
   });
 
   const createMutation = useMutation({
@@ -79,33 +179,43 @@ export default function AddProductScreen() {
 
   const handleSave = () => {
     if (!name || !sellingPrice) {
-      Alert.alert(t('common.error'), 'Please fill in required fields');
+      Alert.alert(t('common.error'), t('common.fillRequiredFields'));
       return;
     }
 
     createMutation.mutate({
       name,
-      description: sku, // Using description for SKU in this demo
+      description,
       categoryId: categoryId || undefined,
+      brandCategoryId: brandCategoryId || undefined,
       costPrice: parseFloat(costPrice) || 0,
       sellingPrice: parseFloat(sellingPrice) || 0,
+      currency,
       quantity: parseInt(quantity) || 0,
-      currency: 'USD',
+      minQuantity: parseInt(minQuantity) || 0,
     });
   };
 
-  return (
-    <View style={[styles.container, { backgroundColor: bg }]}>
-      {/* Navbar */}
-      <View style={[styles.navbar, { paddingTop: insets.top, borderBottomColor: border, borderBottomWidth: 1 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.navButton}>
-          <ChevronLeft size={24} color={text} />
-        </TouchableOpacity>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: text }}>{t('products.addProduct')}</Text>
-        <View style={{ width: 44 }} />
-      </View>
+  const categoryOptions = React.useMemo(() => {
+    return categories?.map(c => ({ value: c.id, label: c.name })) || [];
+  }, [categories]);
 
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
+  const brandCategoryOptions = React.useMemo(() => {
+    return brandCategories?.map(b => ({ value: b.id, label: b.name })) || [];
+  }, [brandCategories]);
+
+  return (
+    <>
+      <Stack.Screen 
+        options={{
+          headerShown: true,
+          title: t('products.addProduct'),
+          headerStyle: { backgroundColor: bg },
+          headerShadowVisible: true,
+        }}
+      />
+      <View style={[styles.container, { backgroundColor: bg }]}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         {/* Image Upload */}
         <Text style={styles.label}>{t('products.productImage')}</Text>
         <TouchableOpacity 
@@ -130,28 +240,60 @@ export default function AddProductScreen() {
           <View>
             <Text style={styles.label}>{t('products.productName')}</Text>
             <Input
-              placeholder="Enter product name"
+              placeholder={t('products.placeholders.name')}
               value={name}
               onChangeText={setName}
             />
           </View>
 
           <View>
-            <Text style={styles.label}>{t('products.sku')}</Text>
+            <Text style={styles.label}>{t('products.description')}</Text>
             <Input
-              placeholder="Enter SKU"
-              value={sku}
-              onChangeText={setSku}
+              placeholder={t('products.placeholders.description')}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              numberOfLines={3}
             />
           </View>
 
-          <View>
-            <Text style={styles.label}>{t('products.category')}</Text>
-            <TouchableOpacity style={[styles.picker, { backgroundColor: card, borderColor: border }]}>
-              <Text style={{ color: categoryId ? text : muted }}>
-                {categoryId ? categories?.find(c => c.id === categoryId)?.name : 'Select category'}
-              </Text>
-              <ChevronDown size={18} color={muted} />
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t('products.category')}</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: card, borderColor: border }]}>
+                <NativePicker
+                  value={categoryId}
+                  onValueChange={setCategoryId}
+                  options={categoryOptions}
+                  placeholder={t('products.placeholders.selectCategory')}
+                />
+              </View>
+            </View>
+            <TouchableOpacity 
+              style={[styles.plusButton, { backgroundColor: primary + '15' }]}
+              onPress={() => {}}
+            >
+              <Plus size={20} color={primary} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t('products.brandCategory')}</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: card, borderColor: border }]}>
+                <NativePicker
+                  value={brandCategoryId}
+                  onValueChange={setBrandCategoryId}
+                  options={brandCategoryOptions}
+                  placeholder={t('products.placeholders.selectBrandCategory')}
+                />
+              </View>
+            </View>
+            <TouchableOpacity 
+              style={[styles.plusButton, { backgroundColor: primary + '15' }]}
+              onPress={() => {}}
+            >
+              <Plus size={20} color={primary} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
@@ -159,7 +301,7 @@ export default function AddProductScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>{t('products.purchasePrice')}</Text>
               <Input
-                placeholder="$ 0.00"
+                placeholder="0.00"
                 value={costPrice}
                 onChangeText={setCostPrice}
                 keyboardType="numeric"
@@ -168,7 +310,7 @@ export default function AddProductScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>{t('products.sellingPrice')}</Text>
               <Input
-                placeholder="$ 0.00"
+                placeholder="0.00"
                 value={sellingPrice}
                 onChangeText={setSellingPrice}
                 keyboardType="numeric"
@@ -176,14 +318,65 @@ export default function AddProductScreen() {
             </View>
           </View>
 
+          <View style={{ flexDirection: 'row', gap: 16 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t('products.initialStock')}</Text>
+              <Input
+                placeholder="0"
+                value={quantity}
+                onChangeText={setQuantity}
+                keyboardType="numeric"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t('products.reorderLevel')}</Text>
+              <Input
+                placeholder="0"
+                value={minQuantity}
+                onChangeText={setMinQuantity}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+          
           <View>
-            <Text style={styles.label}>{t('products.initialStock')}</Text>
-            <Input
-              placeholder="0"
-              value={quantity}
-              onChangeText={setQuantity}
-              keyboardType="numeric"
-            />
+            <Text style={styles.label}>{t('products.currency')}</Text>
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity
+                style={[
+                  styles.currencyButton,
+                  { 
+                    backgroundColor: currency === 'UZS' ? primary : card,
+                    borderColor: currency === 'UZS' ? primary : border
+                  }
+                ]}
+                onPress={() => setCurrency('UZS')}
+              >
+                <Text style={{ 
+                  color: currency === 'UZS' ? primaryForeground : text,
+                  fontWeight: '600'
+                }}>
+                  UZS
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.currencyButton,
+                  { 
+                    backgroundColor: currency === 'USD' ? primary : card,
+                    borderColor: currency === 'USD' ? primary : border
+                  }
+                ]}
+                onPress={() => setCurrency('USD')}
+              >
+                <Text style={{ 
+                  color: currency === 'USD' ? primaryForeground : text,
+                  fontWeight: '600'
+                }}>
+                  USD
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -197,26 +390,14 @@ export default function AddProductScreen() {
       </ScrollView>
 
       <AvoidKeyboard offset={20} />
-    </View>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  navbar: {
-    height: Platform.OS === 'ios' ? 94 : 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
-  },
-  navButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   label: {
     fontSize: 14,
@@ -245,13 +426,26 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  picker: {
+  pickerContainer: {
     height: 52,
     borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  currencyButton: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+  },
+  plusButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });

@@ -39,7 +39,8 @@ export default {
     error: "Ошибка",
     success: "Успешно",
     warning: "Предупреждение",
-    filter: "Фильтрация"
+    filter: "Фильтрация",
+    fillRequiredFields: "Пожалуйста, заполните обязательные поля"
   },
   home: {
     segments: {
@@ -119,5 +120,19 @@ export default {
     uncategorized: "Без категории",
     emptyTitle: "Товаров пока нет",
     emptySubtitle: "Нажмите кнопку ниже, чтобы добавить первый товар",
+    deleteProduct: "Удалить товар",
+    deleteConfirmation: "Вы уверены, что хотите удалить этот товар? Это действие нельзя отменить.",
+    placeholders: {
+      name: "Введите название товара",
+      description: "Введите описание товара",
+      selectCategory: "Выберите категорию",
+      selectBrandCategory: "Выберите категорию бренда",
+      searchCategory: "Поиск категории...",
+      searchBrand: "Поиск бренда..."
+    },
+    currency: "Валюта",
+    brandCategory: "Категория бренда",
+    noCategoryFound: "Категория не найдена.",
+    noBrandFound: "Бренд не найден."
   }
 };

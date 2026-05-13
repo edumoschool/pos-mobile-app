@@ -231,6 +231,7 @@ export default function HomeScreen() {
 
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
+          onPress={() => router.push('/products' as any)}
             style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
           >
             <ShoppingBag size={20} color={text} />

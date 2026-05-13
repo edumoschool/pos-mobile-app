@@ -39,7 +39,8 @@ export default {
     error: "Error",
     success: "Success",
     warning: "Warning",
-    filter: "Filter"
+    filter: "Filter",
+    fillRequiredFields: "Please fill in required fields"
   },
   home: {
     segments: {
@@ -119,5 +120,19 @@ export default {
     uncategorized: "Uncategorized",
     emptyTitle: "No products yet",
     emptySubtitle: "Tap the button below to add your first product",
+    deleteProduct: "Delete Product",
+    deleteConfirmation: "Are you sure you want to delete this product? This action cannot be undone.",
+    placeholders: {
+      name: "Enter product name",
+      description: "Enter product description",
+      selectCategory: "Select category",
+      selectBrandCategory: "Select brand category",
+      searchCategory: "Search category...",
+      searchBrand: "Search brand..."
+    },
+    currency: "Currency",
+    brandCategory: "Brand Category",
+    noCategoryFound: "No category found.",
+    noBrandFound: "No brand found."
   }
 };
