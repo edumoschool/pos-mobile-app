@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, TouchableOpacity, Platform, Image, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
@@ -15,7 +15,10 @@ import {
   Layers,
   Package,
   User,
-  Download
+  Download,
+  Check,
+  ArrowUpAZ,
+  ArrowDownZA
 } from 'lucide-react-native';
 import SegmentedControl from '@expo/ui/community/segmented-control';
 import { FlashList } from '@shopify/flash-list';
@@ -39,10 +42,15 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const listRef = useRef<any>(null);
 
   const { isVisible: isAddClientOpen, open: openAddClient, close: closeAddClient } = useBottomSheet();
+  const { isVisible: isFilterOpen, open: openFilter, close: closeFilter } = useBottomSheet();
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
+
+  const [clientSortBy, setClientSortBy] = useState<'createdAt' | 'clientTransAmount' | 'alphabetic'>('alphabetic');
+  const [clientOrder, setClientOrder] = useState<'asc' | 'desc'>('asc');
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -67,8 +75,14 @@ export default function HomeScreen() {
     hasNextPage: hasNextClients,
     isFetchingNextPage: isFetchingNextClients
   } = useInfiniteQuery({
-    queryKey: ['clients', searchQuery],
-    queryFn: ({ pageParam = 1 }) => clientsApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined, sortBy: 'alphabetic', order: 'asc' }),
+    queryKey: ['clients', searchQuery, clientSortBy, clientOrder],
+    queryFn: ({ pageParam = 1 }) => clientsApi.getAll({ 
+      page: pageParam, 
+      limit: 20, 
+      search: searchQuery || undefined, 
+      sortBy: clientSortBy, 
+      order: clientOrder 
+    }),
     getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
   });
@@ -102,6 +116,10 @@ export default function HomeScreen() {
   const clients = clientsData?.pages.flatMap(page => page.data) || [];
   const suppliers = suppliersData?.pages.flatMap(page => page.data) || [];
   const usersData = usersQueryData?.pages.flatMap(page => page.data) || [];
+
+  useEffect(() => {
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }, [clientSortBy, clientOrder, selectedIndex, searchQuery]);
 
   const getActiveData = () => {
     switch (selectedIndex) {
@@ -259,25 +277,49 @@ export default function HomeScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
             onClear={() => setSearchQuery('')}
-            containerStyle={{ borderRadius: 22 }}
+            containerStyle={{ height: 40, borderRadius: 20 }}
             showClearButton={true}
           />
         </View>
 
-        {/* Filter Button */}
-        <TouchableOpacity
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 16,
-            backgroundColor: card,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderColor: border + '80'
-          }}
-        >
-          <Filter size={22} color={primary} />
-        </TouchableOpacity>
+        {/* Filter & Sort Buttons */}
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            onPress={openFilter}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: clientSortBy !== 'alphabetic' ? primary : card,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderColor: clientSortBy !== 'alphabetic' ? primary : border + '80',
+              borderWidth: 1,
+            }}
+          >
+            <Filter size={20} color={clientSortBy !== 'alphabetic' ? primaryForeground : primary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setClientOrder(clientOrder === 'asc' ? 'desc' : 'asc')}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: clientOrder !== 'asc' ? primary : card,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderColor: clientOrder !== 'asc' ? primary : border + '80',
+              borderWidth: 1,
+            }}
+          >
+            {clientOrder === 'asc' ? (
+              <ArrowUpAZ size={20} color={primary} />
+            ) : (
+              <ArrowDownZA size={20} color={primaryForeground} />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ── List ──────────────────────────────────────────────── */}
@@ -288,6 +330,7 @@ export default function HomeScreen() {
           </View>
         ) : (
           <FlashList
+            ref={listRef}
             data={activeData}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 100 }}
@@ -448,6 +491,51 @@ export default function HomeScreen() {
           </Button>
         </View>
         <AvoidKeyboard offset={20} />
+      </BottomSheet>
+
+      {/* ── Filter Bottom Sheet ──────────────────────────────── */}
+      <BottomSheet
+        isVisible={isFilterOpen}
+        onClose={closeFilter}
+        title={t('common.filter')}
+        snapPoints={[0.35]}
+      >
+        <View style={{ gap: 20 }}>
+          <View>
+            <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 12, color: text }}>
+              {t('home.sortBy')}
+            </Text>
+            <View style={{ gap: 8 }}>
+              {[
+                { label: t('home.sortOptions.alphabetic'), value: 'alphabetic' },
+                { label: t('home.sortOptions.createdAt'), value: 'createdAt' },
+                { label: t('home.sortOptions.balance'), value: 'clientTransAmount' },
+              ].map((opt) => (
+                <TouchableOpacity
+                  key={opt.value}
+                  onPress={() => {
+                    setClientSortBy(opt.value as any);
+                    closeFilter();
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    backgroundColor: clientSortBy === opt.value ? primary + '15' : 'transparent',
+                    borderRadius: 12,
+                  }}
+                >
+                  <Text style={{ color: clientSortBy === opt.value ? primary : text, fontWeight: clientSortBy === opt.value ? '600' : '400' }}>
+                    {opt.label}
+                  </Text>
+                  {clientSortBy === opt.value && <Check size={18} color={primary} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
       </BottomSheet>
 
     </View>

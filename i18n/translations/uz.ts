@@ -33,7 +33,8 @@ export default {
     delete: "O'chirish",
     error: "Xato",
     success: "Muvaffaqiyatli",
-    warning: "Ogohlantirish"
+    warning: "Ogohlantirish",
+    filter: "Filtrlash"
   },
   home: {
     segments: {
@@ -46,6 +47,17 @@ export default {
     roles: {
       client: "Mijoz",
       supplier: "Ta'minotchi"
+    },
+    sortBy: "Saralash turi",
+    sortOrder: "Tartib",
+    sortOptions: {
+      alphabetic: "Alifbo bo'yicha",
+      createdAt: "Yaratilgan vaqti",
+      balance: "Balans (Qarz)"
+    },
+    orderOptions: {
+      asc: "O'suvchi",
+      desc: "Kamayuvchi"
     }
   }
 };

@@ -33,7 +33,8 @@ export default {
     delete: "Delete",
     error: "Error",
     success: "Success",
-    warning: "Warning"
+    warning: "Warning",
+    filter: "Filter"
   },
   home: {
     segments: {
@@ -46,6 +47,17 @@ export default {
     roles: {
       client: "Client",
       supplier: "Supplier"
+    },
+    sortBy: "Sort By",
+    sortOrder: "Order",
+    sortOptions: {
+      alphabetic: "Alphabetic",
+      createdAt: "Created Date",
+      balance: "Balance (Debt)"
+    },
+    orderOptions: {
+      asc: "Ascending",
+      desc: "Descending"
     }
   }
 };

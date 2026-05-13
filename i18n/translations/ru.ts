@@ -33,7 +33,8 @@ export default {
     delete: "Удалить",
     error: "Ошибка",
     success: "Успешно",
-    warning: "Предупреждение"
+    warning: "Предупреждение",
+    filter: "Фильтрация"
   },
   home: {
     segments: {
@@ -46,6 +47,17 @@ export default {
     roles: {
       client: "Клиент",
       supplier: "Поставщик"
+    },
+    sortBy: "Сортировка",
+    sortOrder: "Порядок",
+    sortOptions: {
+      alphabetic: "По алфавиту",
+      createdAt: "Дата создания",
+      balance: "Баланс (Долг)"
+    },
+    orderOptions: {
+      asc: "По возрастанию",
+      desc: "По убыванию"
     }
   }
 };
