@@ -4,6 +4,7 @@ import type {
   CreateSalePayload,
   SaleSummary,
   SaleListQuery,
+  PaginatedResponse,
 } from '@/types';
 
 export const salesApi = {
@@ -19,11 +20,11 @@ export const salesApi = {
   },
 
   /**
-   * GET /sales?clientId=&branchId=&status=&from=&to=
+   * GET /sales?clientId=&branchId=&status=&from=&to=&page=&limit=
    * List sales with optional filters.
    */
-  getAll: async (params?: SaleListQuery): Promise<Sale[]> => {
-    const res = await api.get<Sale[]>('/sales', { params });
+  getAll: async (params?: SaleListQuery): Promise<PaginatedResponse<Sale>> => {
+    const res = await api.get<PaginatedResponse<Sale>>('/sales', { params });
     return res.data;
   },
 

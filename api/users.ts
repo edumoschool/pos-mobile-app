@@ -5,6 +5,8 @@ import type {
   UpdateUserPayload,
   ChangeLanguagePayload,
   UserRole,
+  PaginatedResponse,
+  PaginationQuery,
 } from '@/types';
 
 export const usersApi = {
@@ -20,9 +22,9 @@ export const usersApi = {
     return res.data;
   },
 
-  /** GET /users?role= — list all users (owner/super_admin only) */
-  getAll: async (role?: UserRole): Promise<User[]> => {
-    const res = await api.get<User[]>('/users', { params: { role } });
+  /** GET /users?role=&page=&limit=&search= — list all users (owner/super_admin only) */
+  getAll: async (params?: PaginationQuery & { role?: UserRole; search?: string }): Promise<PaginatedResponse<User>> => {
+    const res = await api.get<PaginatedResponse<User>>('/users', { params });
     return res.data;
   },
 

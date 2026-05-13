@@ -759,6 +759,26 @@ export interface MessageResponse {
   message: string;
 }
 
+/** Pagination parameters */
+export interface PaginationQuery {
+  page?: number;
+  limit?: number;
+}
+
+/** Pagination metadata */
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+/** Standard paginated response */
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
 /** Query params shared by many report endpoints */
 export interface DateRangeQuery {
   branchId?: string;
@@ -767,8 +787,17 @@ export interface DateRangeQuery {
 }
 
 /** Query params for client listing */
-export interface ClientListQuery {
+export interface ClientListQuery extends PaginationQuery {
   search?: string;
   sortBy?: 'createdAt' | 'clientTransAmount' | 'alphabetic';
   order?: 'asc' | 'desc';
 }
+
+/** Query params for sale listing */
+export interface SaleListQuery extends PaginationQuery {
+  clientId?: string;
+  branchId?: string;
+  status?: SaleStatus;
+  from?: string;
+  to?: string;
+}

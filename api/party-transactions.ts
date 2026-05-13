@@ -7,6 +7,8 @@ import type {
   CreateSupplierTransactionPayload,
   SupplierBalanceDetail,
   ExcelExportResult,
+  PaginatedResponse,
+  PaginationQuery,
 } from '@/types';
 
 // ─── Client Transactions (debt / payment tracking) ──────────────────────────
@@ -18,11 +20,9 @@ export const clientTransactionsApi = {
     return res.data;
   },
 
-  /** GET /client-transactions?clientId= */
-  getAll: async (clientId?: string): Promise<ClientTransaction[]> => {
-    const res = await api.get<ClientTransaction[]>('/client-transactions', {
-      params: clientId ? { clientId } : undefined,
-    });
+  /** GET /client-transactions?clientId=&page=&limit= */
+  getAll: async (params?: PaginationQuery & { clientId?: string }): Promise<PaginatedResponse<ClientTransaction>> => {
+    const res = await api.get<PaginatedResponse<ClientTransaction>>('/client-transactions', { params });
     return res.data;
   },
 
@@ -61,11 +61,9 @@ export const supplierTransactionsApi = {
     return res.data;
   },
 
-  /** GET /supplier-transactions?supplierId= */
-  getAll: async (supplierId?: string): Promise<SupplierTransaction[]> => {
-    const res = await api.get<SupplierTransaction[]>('/supplier-transactions', {
-      params: supplierId ? { supplierId } : undefined,
-    });
+  /** GET /supplier-transactions?supplierId=&page=&limit= */
+  getAll: async (params?: PaginationQuery & { supplierId?: string }): Promise<PaginatedResponse<SupplierTransaction>> => {
+    const res = await api.get<PaginatedResponse<SupplierTransaction>>('/supplier-transactions', { params });
     return res.data;
   },
 

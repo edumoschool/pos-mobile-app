@@ -1,10 +1,10 @@
 import api from './client';
-import type { Product, CreateProductPayload, UpdateProductPayload } from '@/types';
+import type { Product, CreateProductPayload, UpdateProductPayload, PaginatedResponse, PaginationQuery } from '@/types';
 
 export const productsApi = {
-  /** GET /products?search= — list active products with inventory status */
-  getAll: async (search?: string): Promise<Product[]> => {
-    const res = await api.get<Product[]>('/products', { params: search ? { search } : undefined });
+  /** GET /products?search=&page=&limit= — list active products with inventory status */
+  getAll: async (params?: PaginationQuery & { search?: string }): Promise<PaginatedResponse<Product>> => {
+    const res = await api.get<PaginatedResponse<Product>>('/products', { params });
     return res.data;
   },
 

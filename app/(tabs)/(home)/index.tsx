@@ -4,13 +4,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  ShoppingBag, 
-  Calculator, 
-  Search, 
-  Filter, 
-  Menu, 
-  UserPlus, 
+import {
+  ShoppingBag,
+  Calculator,
+  Search,
+  Filter,
+  Menu,
+  UserPlus,
   Bell,
   Layers,
   Package,
@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
 import { usersApi } from '@/api/users';
 import { ActivityIndicator, Keyboard, Alert } from 'react-native';
@@ -42,7 +42,7 @@ export default function HomeScreen() {
   const { isVisible: isAddClientOpen, open: openAddClient, close: closeAddClient } = useBottomSheet();
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
-  
+
   const bg = useColor('background');
   const card = useColor('card');
   const border = useColor('border');
@@ -59,20 +59,48 @@ export default function HomeScreen() {
 
   const tenantName = user?.tenant?.name || 'Mening biznesimu...';
 
-  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
-    queryKey: ['clients'],
-    queryFn: () => clientsApi.getAll(),
+  const {
+    data: clientsData,
+    isLoading: isLoadingClients,
+    fetchNextPage: fetchNextClients,
+    hasNextPage: hasNextClients,
+    isFetchingNextPage: isFetchingNextClients
+  } = useInfiniteQuery({
+    queryKey: ['clients', searchQuery],
+    queryFn: ({ pageParam = 1 }) => clientsApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
+    getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    initialPageParam: 1,
   });
 
-  const { data: suppliers = [], isLoading: isLoadingSuppliers } = useQuery({
-    queryKey: ['suppliers'],
-    queryFn: () => suppliersApi.getAll(),
+  const {
+    data: suppliersData,
+    isLoading: isLoadingSuppliers,
+    fetchNextPage: fetchNextSuppliers,
+    hasNextPage: hasNextSuppliers,
+    isFetchingNextPage: isFetchingNextSuppliers
+  } = useInfiniteQuery({
+    queryKey: ['suppliers', searchQuery],
+    queryFn: ({ pageParam = 1 }) => suppliersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
+    getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    initialPageParam: 1,
   });
 
-  const { data: usersData = [], isLoading: isLoadingUsers } = useQuery({
-    queryKey: ['users'],
-    queryFn: () => usersApi.getAll(),
+  const {
+    data: usersQueryData,
+    isLoading: isLoadingUsers,
+    fetchNextPage: fetchNextUsers,
+    hasNextPage: hasNextUsers,
+    isFetchingNextPage: isFetchingNextUsers
+  } = useInfiniteQuery({
+    queryKey: ['users', searchQuery],
+    queryFn: ({ pageParam = 1 }) => usersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
+    getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    initialPageParam: 1,
   });
+
+  const clients = clientsData?.pages.flatMap(page => page.data) || [];
+  const suppliers = suppliersData?.pages.flatMap(page => page.data) || [];
+  const usersData = usersQueryData?.pages.flatMap(page => page.data) || [];
 
   const getActiveData = () => {
     switch (selectedIndex) {
@@ -136,27 +164,23 @@ export default function HomeScreen() {
   const activeData = getActiveData();
   const isLoading = isLoadingClients || isLoadingSuppliers || isLoadingUsers;
 
-  const filteredData = activeData.filter((item) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return item.name.toLowerCase().includes(q) || item.phone.toLowerCase().includes(q);
-  });
+  // filtering is now done server-side
 
   return (
     <View style={{ flex: 1, backgroundColor: bg, paddingTop: Platform.OS === 'ios' ? insets.top : insets.top }}>
-      
+
       {/* ── Topbar ────────────────────────────────────────────── */}
-      <View style={{ 
-        flexDirection: 'row', 
-        alignItems: 'center', 
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
         paddingHorizontal: 16,
         paddingBottom: 16,
         gap: 12
       }}>
 
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text 
-            numberOfLines={1} 
+          <Text
+            numberOfLines={1}
             style={{ fontSize: 22, fontWeight: '800', flexShrink: 1 }}
           >
             {tenantName}
@@ -164,17 +188,17 @@ export default function HomeScreen() {
         </View>
 
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
           >
             <ShoppingBag size={20} color={text} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
           >
             <Package size={20} color={text} />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => router.push('/calculator')}
             style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
           >
@@ -192,17 +216,17 @@ export default function HomeScreen() {
             setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
           }}
           tintColor="#1b0d44ff"
-          style={{ height: 40,}}
+          style={{ height: 40, }}
         />
       </View>
 
       {/* ── Search & Filter ───────────────────────────────────── */}
-      <View style={{ 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        paddingHorizontal: 16, 
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
         paddingBottom: 20,
-        gap: 12 
+        gap: 12
       }}>
         {/* Search Bar */}
         <View style={{ flex: 1 }}>
@@ -211,19 +235,19 @@ export default function HomeScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
             onClear={() => setSearchQuery('')}
-            containerStyle={{borderRadius: 22}}
+            containerStyle={{ borderRadius: 22 }}
             showClearButton={true}
           />
         </View>
 
         {/* Filter Button */}
-        <TouchableOpacity 
-          style={{ 
-            width: 48, 
-            height: 48, 
-            borderRadius: 16, 
-            backgroundColor: card, 
-            alignItems: 'center', 
+        <TouchableOpacity
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 16,
+            backgroundColor: card,
+            alignItems: 'center',
             justifyContent: 'center',
             borderColor: border + '80'
           }}
@@ -240,60 +264,73 @@ export default function HomeScreen() {
           </View>
         ) : (
           <FlashList
-            data={filteredData}
+            data={activeData}
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 100 }}
+            onEndReached={() => {
+              if (selectedIndex === 0 && hasNextClients) fetchNextClients();
+              if (selectedIndex === 1 && hasNextSuppliers) fetchNextSuppliers();
+              if (selectedIndex === 2 && hasNextUsers) fetchNextUsers();
+            }}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={() => {
+              const isFetchingNext = (selectedIndex === 0 && isFetchingNextClients) ||
+                (selectedIndex === 1 && isFetchingNextSuppliers) ||
+                (selectedIndex === 2 && isFetchingNextUsers);
+              if (!isFetchingNext) return null;
+              return <ActivityIndicator size="small" color={primary} style={{ marginVertical: 16 }} />;
+            }}
             renderItem={({ item }) => (
-            <View style={{ 
-              backgroundColor: card,
-              padding: 16,
-              borderRadius: 12,
-              marginBottom: 12,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-              {/* Left Icon (Avatar) */}
-              <Avatar size={44} style={{ marginRight: 12 }}>
-                {item.avatarUrl && <AvatarImage source={{ uri: item.avatarUrl }} style={{ width: '100%', height: '100%' }} />}
-                <AvatarFallback 
-                  style={{ backgroundColor: primary }} 
-                  textStyle={{ color: primaryForeground, fontSize: 16, fontWeight: '700' }}
-                >
-                  {item.name ? item.name.substring(0, 2).toUpperCase() : '??'}
-                </AvatarFallback>
-              </Avatar>
+              <View style={{
+                backgroundColor: card,
+                padding: 12,
+                borderRadius: 12,
+                marginBottom: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>
+                {/* Left Icon (Avatar) */}
+                <Avatar size={40} style={{ marginRight: 12 }}>
+                  {item.avatarUrl && <AvatarImage source={{ uri: item.avatarUrl }} style={{ width: '100%', height: '100%' }} />}
+                  <AvatarFallback
+                    style={{ backgroundColor: primary }}
+                    textStyle={{ color: primaryForeground, fontSize: 14, fontWeight: '700' }}
+                  >
+                    {item.name ? item.name.substring(0, 2).toUpperCase() : '??'}
+                  </AvatarFallback>
+                </Avatar>
 
-              {/* Center Info */}
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '600', color: text, marginBottom: 4 }}>{item.name}</Text>
-                <Text style={{ fontSize: 13, color: muted }}>{item.phone}</Text>
-              </View>
+                {/* Center Info */}
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: text, marginBottom: 2 }}>{item.name}</Text>
+                  <Text style={{ fontSize: 12, color: muted }}>{item.phone}</Text>
+                </View>
 
-              {/* Right Info */}
-              <View style={{ alignItems: 'flex-end' }}>
-                <Text style={{ 
-                  fontSize: 15, 
-                  fontWeight: '600', 
-                  color: item.balance.startsWith('-') ? red : green,
-                  marginBottom: 4
-                }}>
-                  {item.balance}
-                </Text>
-                <Text style={{ fontSize: 12, color: muted }}>{item.subtext}</Text>
+                {/* Right Info */}
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: item.balance.startsWith('-') ? red : green,
+                    marginBottom: 2
+                  }}>
+                    {item.balance}
+                  </Text>
+                  <Text style={{ fontSize: 11, color: muted }}>{item.subtext}</Text>
+                </View>
               </View>
-            </View>
-          )}
-          ListEmptyComponent={() => (
-            <View style={{ padding: 40, alignItems: 'center', marginTop: 20 }}>
-              <Image 
-                source={require('@/assets/icons/empty.png')} 
-                style={{ width: 150, height: 150, marginBottom: 16, opacity: 0.9 }} 
-                resizeMode="contain"
-              />
-              <Text style={{ color: muted, fontSize: 16, fontWeight: '500' }}>{t('home.noResults')}</Text>
-            </View>
-          )}
-        />
+            )}
+            ListEmptyComponent={() => (
+              <View style={{ padding: 40, alignItems: 'center', marginTop: 20 }}>
+                <Image
+                  source={require('@/assets/icons/empty.png')}
+                  style={{ width: 150, height: 150, marginBottom: 16, opacity: 0.9 }}
+                  resizeMode="contain"
+                />
+                <Text style={{ color: muted, fontSize: 16, fontWeight: '500' }}>{t('home.noResults')}</Text>
+              </View>
+            )}
+          />
         )}
       </View>
 
@@ -328,31 +365,31 @@ export default function HomeScreen() {
             <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
               Ism <Text style={{ color: red }}>*</Text>
             </Text>
-            <Input 
+            <Input
               placeholder="Mijozni ismini kiriting"
               value={newClientName}
               onChangeText={setNewClientName}
               variant="outline"
             />
           </View>
-          
+
           <View>
             <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
               Telefon <Text style={{ color: red }}>*</Text>
             </Text>
-            <View style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
-              backgroundColor: card, 
-              borderRadius: 12, 
-              borderWidth: 1, 
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: card,
+              borderRadius: 12,
+              borderWidth: 1,
               borderColor: border,
               height: 52
             }}>
               <View style={{ paddingHorizontal: 16, borderRightWidth: 1, borderColor: border, height: '100%', justifyContent: 'center' }}>
                 <Text style={{ fontSize: 16, color: text }}>+998</Text>
               </View>
-              <Input 
+              <Input
                 placeholder="00 000 00 00"
                 value={newClientPhone}
                 onChangeText={setNewClientPhone}
@@ -369,8 +406,8 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <Button 
-            onPress={handleAddClient} 
+          <Button
+            onPress={handleAddClient}
             disabled={!newClientName || addClientMutation.isPending}
             loading={addClientMutation.isPending}
             style={{ marginTop: 12 }}
@@ -387,10 +424,10 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   iconButton: {
-    width: 44, 
-    height: 44, 
-    borderRadius: 22, 
-    alignItems: 'center', 
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
     justifyContent: 'center',
   },
   fab: {

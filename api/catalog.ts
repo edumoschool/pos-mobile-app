@@ -10,14 +10,15 @@ import type {
   CreateExpenseCategoryPayload,
   IncomeCategory,
   CreateIncomeCategoryPayload,
+  PaginatedResponse,
 } from '@/types';
 
 // ─── Product Categories ─────────────────────────────────────────────────────
 
 export const categoriesApi = {
   getAll: async (): Promise<Category[]> => {
-    const res = await api.get<Category[]>('/categories');
-    return res.data;
+    const res = await api.get<PaginatedResponse<Category>>('/categories', { params: { limit: 100 } });
+    return res.data.data;
   },
   getById: async (id: string): Promise<Category> => {
     const res = await api.get<Category>(`/categories/${id}`);
@@ -40,8 +41,8 @@ export const categoriesApi = {
 
 export const brandCategoriesApi = {
   getAll: async (): Promise<BrandCategory[]> => {
-    const res = await api.get<BrandCategory[]>('/brand-categories');
-    return res.data;
+    const res = await api.get<PaginatedResponse<BrandCategory>>('/brand-categories', { params: { limit: 100 } });
+    return res.data.data;
   },
   getById: async (id: string): Promise<BrandCategory> => {
     const res = await api.get<BrandCategory>(`/brand-categories/${id}`);
@@ -64,8 +65,8 @@ export const brandCategoriesApi = {
 
 export const unitsApi = {
   getAll: async (): Promise<Unit[]> => {
-    const res = await api.get<Unit[]>('/units');
-    return res.data;
+    const res = await api.get<PaginatedResponse<Unit>>('/units', { params: { limit: 100 } });
+    return res.data.data;
   },
   getById: async (id: string): Promise<Unit> => {
     const res = await api.get<Unit>(`/units/${id}`);
@@ -88,8 +89,8 @@ export const unitsApi = {
 
 export const expenseCategoriesApi = {
   getAll: async (): Promise<ExpenseCategory[]> => {
-    const res = await api.get<ExpenseCategory[]>('/expense-categories');
-    return res.data;
+    const res = await api.get<PaginatedResponse<ExpenseCategory>>('/expense-categories', { params: { limit: 100 } });
+    return res.data.data;
   },
   getById: async (id: string): Promise<ExpenseCategory> => {
     const res = await api.get<ExpenseCategory>(`/expense-categories/${id}`);
@@ -112,8 +113,8 @@ export const expenseCategoriesApi = {
 
 export const incomeCategoriesApi = {
   getAll: async (): Promise<IncomeCategory[]> => {
-    const res = await api.get<IncomeCategory[]>('/income-categories');
-    return res.data;
+    const res = await api.get<PaginatedResponse<IncomeCategory>>('/income-categories', { params: { limit: 100 } });
+    return res.data.data;
   },
   getById: async (id: string): Promise<IncomeCategory> => {
     const res = await api.get<IncomeCategory>(`/income-categories/${id}`);

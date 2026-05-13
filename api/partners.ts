@@ -8,14 +8,16 @@ import type {
   UpdateSupplierPayload,
   ClientListQuery,
   ExcelExportResult,
+  PaginatedResponse,
+  PaginationQuery,
 } from '@/types';
 
 // ─── Clients ────────────────────────────────────────────────────────────────
 
 export const clientsApi = {
-  /** GET /clients?search=&sortBy=&order= */
-  getAll: async (query?: ClientListQuery): Promise<Client[]> => {
-    const res = await api.get<Client[]>('/clients', { params: query });
+  /** GET /clients?search=&sortBy=&order=&page=&limit= */
+  getAll: async (query?: ClientListQuery): Promise<PaginatedResponse<Client>> => {
+    const res = await api.get<PaginatedResponse<Client>>('/clients', { params: query });
     return res.data;
   },
 
@@ -52,9 +54,9 @@ export const clientsApi = {
 // ─── Suppliers ──────────────────────────────────────────────────────────────
 
 export const suppliersApi = {
-  /** GET /suppliers?search= */
-  getAll: async (search?: string): Promise<Supplier[]> => {
-    const res = await api.get<Supplier[]>('/suppliers', { params: search ? { search } : undefined });
+  /** GET /suppliers?search=&page=&limit= */
+  getAll: async (params?: PaginationQuery & { search?: string }): Promise<PaginatedResponse<Supplier>> => {
+    const res = await api.get<PaginatedResponse<Supplier>>('/suppliers', { params });
     return res.data;
   },
 

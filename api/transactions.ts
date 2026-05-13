@@ -4,15 +4,17 @@ import type {
   CreateTransactionPayload,
   UpdateTransactionPayload,
   TransactionType,
+  PaginatedResponse,
+  PaginationQuery,
 } from '@/types';
 
 export const transactionsApi = {
-  /** GET /transactions?branchId=&type= — list transactions */
-  getAll: async (params?: {
+  /** GET /transactions?branchId=&type=&page=&limit= — list transactions */
+  getAll: async (params?: PaginationQuery & {
     branchId?: string;
     type?: TransactionType;
-  }): Promise<Transaction[]> => {
-    const res = await api.get<Transaction[]>('/transactions', { params });
+  }): Promise<PaginatedResponse<Transaction>> => {
+    const res = await api.get<PaginatedResponse<Transaction>>('/transactions', { params });
     return res.data;
   },
 
