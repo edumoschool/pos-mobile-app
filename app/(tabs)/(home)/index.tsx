@@ -68,7 +68,7 @@ export default function HomeScreen() {
     isFetchingNextPage: isFetchingNextClients
   } = useInfiniteQuery({
     queryKey: ['clients', searchQuery],
-    queryFn: ({ pageParam = 1 }) => clientsApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
+    queryFn: ({ pageParam = 1 }) => clientsApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined, sortBy: 'alphabetic', order: 'asc' }),
     getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
   });
