@@ -27,3 +27,4 @@ export { clientTransactionsApi, supplierTransactionsApi } from './party-transact
 export { reportsApi } from './reports';
 export { exchangeRatesApi } from './exchange-rates';
 export { notificationsApi } from './notifications';
+export { salesApi } from './sales';

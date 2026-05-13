@@ -14,13 +14,14 @@
 4. [API Client Setup](#4-api-client-setup)
 5. [Type System](#5-type-system)
 6. [API Reference — All Endpoints](#6-api-reference--all-endpoints)
-7. [Image Upload Pattern](#7-image-upload-pattern)
-8. [Push Notifications](#8-push-notifications)
-9. [SSE — Real-Time Session Events](#9-sse--real-time-session-events)
-10. [Exchange Rates & Currency](#10-exchange-rates--currency)
-11. [Reports & Analytics](#11-reports--analytics)
-12. [Error Handling](#12-error-handling)
-13. [Recommended App Architecture](#13-recommended-app-architecture)
+7. [Sales — POS Checkout Flow](#7-sales--pos-checkout-flow)
+8. [Image Upload Pattern](#8-image-upload-pattern)
+9. [Push Notifications](#9-push-notifications)
+10. [SSE — Real-Time Session Events](#10-sse--real-time-session-events)
+11. [Exchange Rates & Currency](#11-exchange-rates--currency)
+12. [Reports & Analytics](#12-reports--analytics)
+13. [Error Handling](#13-error-handling)
+14. [Recommended App Architecture](#14-recommended-app-architecture)
 
 ---
 
@@ -189,10 +190,11 @@ import type { Product, CreateProductPayload, InventoryStatus } from '@/types';
 
 | Category | Types |
 |---|---|
-| **Enums** | `UserRole`, `Currency`, `PaymentMethod`, `TransactionType`, `PartyTransactionType`, `InventoryMovementType`, `SubscriptionStatus`, `ReportFormat`, `ExportReportType` |
+| **Enums** | `UserRole`, `Currency`, `PaymentMethod`, `TransactionType`, `PartyTransactionType`, `InventoryMovementType`, `SaleStatus`, `SubscriptionStatus`, `ReportFormat`, `ExportReportType` |
 | **Auth** | `LoginPayload`, `RegisterPayload`, `AuthResponse`, `JwtPayload`, `Session`, `SseEvent` |
-| **Models** | `User`, `Tenant`, `Branch`, `Product`, `Inventory`, `InventoryMovement`, `Client`, `Supplier`, `Transaction`, `ClientTransaction`, `SupplierTransaction`, `ExchangeRate`, `Report` |
+| **Models** | `User`, `Tenant`, `Branch`, `Product`, `Inventory`, `InventoryMovement`, `Client`, `Supplier`, `Transaction`, `ClientTransaction`, `SupplierTransaction`, `Sale`, `SaleItem`, `ExchangeRate`, `Report` |
 | **Payloads** | `Create*Payload`, `Update*Payload` for each model |
+| **Sales** | `CreateSalePayload`, `SaleItemPayload`, `SaleListQuery`, `SaleSummary` |
 | **Reports** | `FinancialSummary`, `TransactionsByDayItem`, `CategoryBreakdownItem`, `InventoryReport`, `PartyBalanceSummary` |
 
 ---
@@ -246,8 +248,9 @@ import type { Product, CreateProductPayload, InventoryStatus } from '@/types';
 | DELETE | `/products/:id/image` | Remove image |
 
 > [!NOTE]
-> Creating a product with `quantity` and `minQuantity` auto-creates an `Inventory` record.
-> The response includes `inventoryStatus: 'in-stock' | 'low-stock'`.
+> - Creating a product with `quantity` and `minQuantity` auto-creates an `Inventory` record.
+> - **PATCH `/products/:id`** now also accepts `quantity` and `minQuantity` — they are synced to the linked `Inventory` row in the same transaction.
+> - The response for create, update, and getById includes `inventoryStatus: 'in-stock' | 'low-stock'`.
 
 ### 6.5 Inventory (`api/inventory.ts`)
 
@@ -312,6 +315,21 @@ import type { Product, CreateProductPayload, InventoryStatus } from '@/types';
 > - `income`: The party pays **us** (client payment or supplier refund)
 > - `outcome`: **We** owe them or pay them (client debt or supplier payment)
 
+> [!NOTE]
+> `ClientTransaction` now has a `saleId` field. Entries auto-created by a debt sale will have this populated, allowing you to link back to the original `Sale` record.
+
+### 6.13 Sales (`api/sales.ts`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/sales` | Create a sale (anonymous or client-linked) |
+| GET | `/sales?clientId=&branchId=&status=&from=&to=` | List sales with filters |
+| GET | `/sales/summary?branchId=` | Today's revenue, cost, profit, debt totals |
+| GET | `/sales/:id` | Full detail — items, client, linked client transactions |
+| PATCH | `/sales/:id/cancel` | Cancel sale — restores stock + reverses client debt |
+
+**Status values:** `completed` · `debt` · `cancelled`
+
 ### 6.9 Categories (`api/catalog.ts`)
 
 Five separate CRUD APIs with identical structure:
@@ -367,7 +385,143 @@ All analytics endpoints accept optional `?branchId=&from=&to=` query params.
 
 ---
 
-## 7. Image Upload Pattern
+## 7. Sales — POS Checkout Flow
+
+### How it works end-to-end
+
+```
+POST /sales
+```
+
+The backend performs all of the following **atomically in one database transaction**:
+
+1. Validates each product exists, is active, and has sufficient inventory
+2. Creates the `Sale` record + `SaleItem[]` with snapshotted prices
+3. Decrements `Inventory.quantity` per item
+4. Creates an `InventoryMovement` (type: `out`) per item
+5. If `clientId` is provided **and** `debtAmount > 0`, auto-creates a `ClientTransaction` (type: `outcome`, linked via `saleId`)
+6. After commit — fires low-stock push notification asynchronously if any item is now below `minQuantity`
+
+### Walk-in (anonymous) sale — cash, fully paid
+
+```typescript
+import { salesApi } from '@/api';
+
+const sale = await salesApi.create({
+  items: [
+    { productId: 'uuid-1', quantity: 2 },          // uses product.sellingPrice
+    { productId: 'uuid-2', quantity: 1, unitPrice: 85000 }, // price override
+  ],
+  paymentMethod: 'cash',
+  currency: 'UZS',
+  paidAmount: 999000,   // equals total → status: 'completed'
+});
+```
+
+### Client sale — partial payment (debt)
+
+```typescript
+const sale = await salesApi.create({
+  items: [{ productId: 'uuid-1', quantity: 3 }],
+  clientId: 'client-uuid',    // required for debt sales
+  paymentMethod: 'transfer',
+  currency: 'UZS',
+  paidAmount: 50000,          // less than total → status: 'debt'
+  discount: 5000,
+  note: 'Wholesale deal',
+});
+// Automatically creates ClientTransaction { type: 'outcome', amount: debtAmount, saleId: sale.id }
+```
+
+> [!IMPORTANT]
+> If `paidAmount < totalAmount` and **no `clientId`** is provided, the backend returns `400 Bad Request`.
+> Debt sales always require a named client.
+
+### Cancel a sale
+
+```typescript
+const cancelled = await salesApi.cancel(saleId);
+// Inventory is restored for all items.
+// If the sale had debt, an offsetting ClientTransaction { type: 'income' } is created to zero it out.
+```
+
+### Dashboard summary
+
+```typescript
+const summary = await salesApi.getSummary();
+// {
+//   date: '2026-05-13',
+//   salesCount: 12,
+//   totalRevenue: 4500000,
+//   totalCost: 3100000,
+//   grossProfit: 1400000,
+//   totalDiscount: 50000,
+//   totalDebt: 200000
+// }
+```
+
+### React Query hooks
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { salesApi } from '@/api';
+import type { CreateSalePayload, SaleListQuery } from '@/types';
+
+export const useSales = (filters?: SaleListQuery) =>
+  useQuery({
+    queryKey: ['sales', filters],
+    queryFn: () => salesApi.getAll(filters),
+  });
+
+export const useSaleSummary = (branchId?: string) =>
+  useQuery({
+    queryKey: ['sales-summary', branchId],
+    queryFn: () => salesApi.getSummary(branchId),
+  });
+
+export const useCreateSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateSalePayload) => salesApi.create(data),
+    onSuccess: () => {
+      // Invalidate sales list, summary, inventory, and client transactions
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['sales-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['client-transactions'] });
+    },
+  });
+};
+
+export const useCancelSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => salesApi.cancel(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['client-transactions'] });
+    },
+  });
+};
+```
+
+### Profit calculation per sale
+
+Both `unitPrice` and `costPrice` are snapshotted on each `SaleItem` at the moment of the sale. This means profit is always accurate even if prices change later:
+
+```typescript
+function calcSaleProfit(sale: Sale): number {
+  const itemProfit = (sale.items ?? []).reduce((sum, item) => {
+    return sum + (item.unitPrice - item.costPrice) * item.quantity;
+  }, 0);
+  return itemProfit - sale.discount;
+}
+```
+
+---
+
+## 8. Image Upload Pattern
 
 React Native uses `FormData` with `{ uri, name, type }` objects:
 
@@ -397,7 +551,7 @@ if (!result.canceled) {
 
 ---
 
-## 8. Push Notifications
+## 9. Push Notifications
 
 ### Registration
 
@@ -424,7 +578,7 @@ await authApi.logout();
 
 ---
 
-## 9. SSE — Real-Time Session Events
+## 10. SSE — Real-Time Session Events
 
 The backend emits Server-Sent Events for session invalidation:
 
@@ -453,7 +607,7 @@ useEffect(() => {
 
 ---
 
-## 10. Exchange Rates & Currency
+## 11. Exchange Rates & Currency
 
 The system supports dual-currency (UZS + USD):
 - Products have a `currency` field
@@ -475,7 +629,7 @@ console.log(`$100 = ${result.result} UZS`);
 
 ---
 
-## 11. Reports & Analytics
+## 12. Reports & Analytics
 
 ### Financial Dashboard
 
@@ -516,7 +670,7 @@ const { url } = await reportsApi.getExportUrl(report.id);
 
 ---
 
-## 12. Error Handling
+## 13. Error Handling
 
 ### Standard Error Shape
 
@@ -554,7 +708,7 @@ try {
 
 ---
 
-## 13. Recommended App Architecture
+## 14. Recommended App Architecture
 
 ### Project Structure
 
@@ -572,16 +726,18 @@ pos-mobile-app/
 │   ├── partners.ts         # clients, suppliers
 │   ├── transactions.ts
 │   ├── party-transactions.ts  # client/supplier transactions
+│   ├── sales.ts            # ← POS sales (NEW)
 │   ├── reports.ts
 │   ├── exchange-rates.ts
 │   └── notifications.ts
 ├── types/
-│   └── index.ts            # ← All TypeScript types
+│   └── index.ts            # ← All TypeScript types (includes Sale, SaleItem, SaleStatus)
 ├── app/                    # Expo Router screens
 │   ├── (auth)/             # Login, Register
 │   ├── (tabs)/             # Main tab navigator
 │   │   ├── dashboard.tsx
 │   │   ├── products.tsx
+│   │   ├── sales.tsx       # ← POS checkout screen (NEW)
 │   │   ├── transactions.tsx
 │   │   └── settings.tsx
 │   └── _layout.tsx
@@ -621,4 +777,4 @@ For a POS app that must work during connectivity drops:
 
 ---
 
-*Generated from analysis of the pos-backend codebase. Verify against the live Swagger docs at `/api/docs`.*
+*Last updated 2026-05-13. Reflects: Sales module (Sale + SaleItem), inventory sync on product update, ClientTransaction.saleId link. Verify against the live Swagger docs at `/api/docs`.*

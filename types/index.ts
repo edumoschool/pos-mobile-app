@@ -23,6 +23,7 @@ export type ExportReportType =
   | 'client-balances'
   | 'supplier-balances';
 export type InventoryStatus = 'in-stock' | 'low-stock';
+export type SaleStatus = 'completed' | 'debt' | 'cancelled';
 
 // ─── Auth ───────────────────────────────────────────────────────────────────
 
@@ -298,6 +299,10 @@ export interface UpdateProductPayload {
   sellingPrice?: number;
   currency?: Currency;
   isActive?: boolean;
+  /** Synced to linked Inventory record when provided */
+  quantity?: number;
+  /** Synced to linked Inventory record when provided */
+  minQuantity?: number;
 }
 
 // ─── Inventory ──────────────────────────────────────────────────────────────
@@ -465,6 +470,8 @@ export interface ClientTransaction {
   tenantId: string;
   clientId: string;
   userId: string;
+  /** Present when this entry was auto-created by a debt sale */
+  saleId: string | null;
   type: PartyTransactionType;
   amount: number;
   currency: Currency;
@@ -475,6 +482,7 @@ export interface ClientTransaction {
   // Included relations
   client?: { id: string; fullName: string; phone: string | null };
   user?: { id: string; fullName: string };
+  sale?: Sale | null;
 }
 
 export interface CreateClientTransactionPayload {
@@ -513,6 +521,93 @@ export interface CreateSupplierTransactionPayload {
   currency?: Currency;
   paymentMethod?: PaymentMethod;
   description?: string;
+}
+
+// ─── Sale ────────────────────────────────────────────────────────────────────
+
+export interface SaleItem {
+  id: string;
+  saleId: string;
+  productId: string;
+  /** Quantity sold */
+  quantity: number;
+  /** Selling price snapshotted at time of sale */
+  unitPrice: number;
+  /** Cost price snapshotted at time of sale (used for profit calculation) */
+  costPrice: number;
+  /** quantity * unitPrice */
+  totalPrice: number;
+  // Included relations
+  product?: { id: string; name: string; unit?: Unit | null };
+}
+
+export interface Sale {
+  id: string;
+  tenantId: string;
+  branchId: string | null;
+  userId: string;
+  /** null for anonymous walk-in sales */
+  clientId: string | null;
+  status: SaleStatus;
+  paymentMethod: PaymentMethod;
+  currency: Currency;
+  /** Sum of all item totals */
+  totalAmount: number;
+  discount: number;
+  /** Amount paid at time of sale */
+  paidAmount: number;
+  /** totalAmount - paidAmount (0 for fully paid sales) */
+  debtAmount: number;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Included relations
+  items?: SaleItem[];
+  client?: { id: string; fullName: string; phone: string | null } | null;
+  user?: { id: string; fullName: string };
+  branch?: { id: string; name: string } | null;
+  /** Present on GET /sales/:id — linked client debt entries */
+  clientTransactions?: ClientTransaction[];
+}
+
+export interface SaleItemPayload {
+  productId: string;
+  quantity: number;
+  /** Override selling price. Defaults to product.sellingPrice if omitted. */
+  unitPrice?: number;
+}
+
+export interface CreateSalePayload {
+  /** At least one item required */
+  items: SaleItemPayload[];
+  /** Omit for anonymous walk-in sale */
+  clientId?: string;
+  paymentMethod: PaymentMethod;
+  currency?: Currency;
+  /** Amount paid now. If less than total, sale becomes 'debt' — requires clientId. */
+  paidAmount: number;
+  /** Flat discount applied to total */
+  discount?: number;
+  note?: string;
+  branchId?: string;
+}
+
+export interface SaleSummary {
+  date: string;
+  salesCount: number;
+  totalRevenue: number;
+  totalCost: number;
+  grossProfit: number;
+  totalDiscount: number;
+  totalDebt: number;
+}
+
+export interface SaleListQuery {
+  clientId?: string;
+  branchId?: string;
+  status?: SaleStatus;
+  from?: string;
+  to?: string;
 }
 
 // ─── Exchange Rate ──────────────────────────────────────────────────────────
