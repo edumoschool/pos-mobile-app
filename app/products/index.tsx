@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { router, Stack } from 'expo-router';
 import { Plus, Filter, Package, ChevronDown, ChevronLeft } from 'lucide-react-native';
 import { FlashList } from '@shopify/flash-list';
+import { Picker } from '@react-native-picker/picker';
 
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
@@ -128,94 +129,34 @@ export default function ProductsScreen() {
         </View>
 
         {/* Category Filter */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScrollContent}
-        >
-          <TouchableOpacity
-            style={[
-              styles.filterPill,
-              { 
-                borderColor: !selectedCategory ? primary : border,
-                backgroundColor: !selectedCategory ? primary + '15' : card
-              }
-            ]}
-            onPress={() => setSelectedCategory(null)}
+        <View style={{ marginHorizontal: 16, marginBottom: 12, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: 'hidden' }}>
+          <Picker
+            selectedValue={selectedCategory || ''}
+            onValueChange={(itemValue) => setSelectedCategory(itemValue === '' ? null : itemValue)}
+            style={{ color: text }}
+            dropdownIconColor={text}
           >
-            <Text style={{ 
-              color: !selectedCategory ? primary : text,
-              fontWeight: !selectedCategory ? '600' : '400'
-            }}>
-              All Categories
-            </Text>
-          </TouchableOpacity>
-          {categories?.map((cat) => (
-            <TouchableOpacity
-              key={cat.id}
-              style={[
-                styles.filterPill,
-                { 
-                  borderColor: selectedCategory === cat.id ? primary : border,
-                  backgroundColor: selectedCategory === cat.id ? primary + '15' : card
-                }
-              ]}
-              onPress={() => setSelectedCategory(cat.id)}
-            >
-              <Text style={{ 
-                color: selectedCategory === cat.id ? primary : text,
-                fontWeight: selectedCategory === cat.id ? '400' : '400'
-              }}>
-                {cat.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            <Picker.Item label="All Categories" value="" />
+            {categories?.map((cat) => (
+              <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
+            ))}
+          </Picker>
+        </View>
 
         {/* Brand Category Filter */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScrollContent}
-        >
-          <TouchableOpacity
-            style={[
-              styles.filterPill,
-              { 
-                borderColor: !selectedBrandCategory ? primary : border,
-                backgroundColor: !selectedBrandCategory ? primary + '15' : card
-              }
-            ]}
-            onPress={() => setSelectedBrandCategory(null)}
+        <View style={{ marginHorizontal: 16, marginBottom: 12, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: 'hidden' }}>
+          <Picker
+            selectedValue={selectedBrandCategory || ''}
+            onValueChange={(itemValue) => setSelectedBrandCategory(itemValue === '' ? null : itemValue)}
+            style={{ color: text }}
+            dropdownIconColor={text}
           >
-            <Text style={{ 
-              color: !selectedBrandCategory ? primary : text,
-              fontWeight: !selectedBrandCategory ? '600' : '400'
-            }}>
-              All Brands
-            </Text>
-          </TouchableOpacity>
-          {brandCategories?.map((brand) => (
-            <TouchableOpacity
-              key={brand.id}
-              style={[
-                styles.filterPill,
-                { 
-                  borderColor: selectedBrandCategory === brand.id ? primary : border,
-                  backgroundColor: selectedBrandCategory === brand.id ? primary + '15' : card
-                }
-              ]}
-              onPress={() => setSelectedBrandCategory(brand.id)}
-            >
-              <Text style={{ 
-                color: selectedBrandCategory === brand.id ? primary : text,
-                fontWeight: selectedBrandCategory === brand.id ? '600' : '400'
-              }}>
-                {brand.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            <Picker.Item label="All Brands" value="" />
+            {brandCategories?.map((brand) => (
+              <Picker.Item key={brand.id} label={brand.name} value={brand.id} />
+            ))}
+          </Picker>
+        </View>
       </View>
 
       {/* ── Category Row ────────────────────────────────────── */}
