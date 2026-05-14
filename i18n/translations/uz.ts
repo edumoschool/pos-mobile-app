@@ -121,6 +121,7 @@ export default {
     initialStock: "Boshlang'ich qoldiq",
     saveProduct: "Mahsulotni saqlash",
     editProduct: "Tahrirlash",
+    isActive: "Faolmi",
     stockQuantity: "Qoldiq miqdori",
     available: "Mavjud",
     reserved: "Band qilingan",
@@ -139,11 +140,13 @@ export default {
       description: "Mahsulot tavsifini kiriting",
       selectCategory: "Kategoriyani tanlang",
       selectBrandCategory: "Brend kategoriyasini tanlang",
+      selectUnit: "O'lchov birligini tanlang",
       searchCategory: "Kategoriyani qidirish...",
       searchBrand: "Brendni qidirish..."
     },
     currency: "Valyuta",
     brandCategory: "Brend kategoriyasi",
+    unit: "O'lchov birligi",
     noCategoryFound: "Kategoriya topilmadi.",
     noBrandFound: "Brend topilmadi.",
     filters: "Filtrlar",
@@ -177,6 +180,18 @@ export default {
     },
     errors: {
       createFailed: "Brend kategoriyasini yaratib bo'lmadi"
+    }
+  },
+  units: {
+    addUnit: "O'lchov birligi qo'shish",
+    name: "O'lchov birligi nomi",
+    shortName: "Qisqa nomi (mas. kg)",
+    placeholders: {
+      name: "O'lchov birligi nomini kiriting",
+      shortName: "mas. kg, dona"
+    },
+    errors: {
+      createFailed: "O'lchov birligini yaratib bo'lmadi"
     }
   }
 };

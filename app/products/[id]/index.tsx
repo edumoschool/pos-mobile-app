@@ -77,7 +77,7 @@ export default function ProductDetailScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TouchableOpacity 
                 style={styles.actionButton}
-                onPress={() => router.push(`/products/[id]/edit`)}
+                onPress={() => router.push(`/products/${id}/edit` as any)}
               >
                 <Pen size={20} color={primary} strokeWidth={2.5} />
               </TouchableOpacity>

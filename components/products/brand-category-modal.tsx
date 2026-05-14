@@ -59,7 +59,6 @@ export function BrandCategoryModal({ open, onOpenChange }: BrandCategoryModalPro
           </View>
           
           <View style={styles.body}>
-            <Text style={styles.label}>{t('brandCategories.name')}</Text>
             <Input
               placeholder={t('brandCategories.placeholders.name')}
               value={name}
@@ -71,13 +70,13 @@ export function BrandCategoryModal({ open, onOpenChange }: BrandCategoryModalPro
           <View style={styles.footer}>
             <Button 
               variant="outline" 
-              style={{ flex: 1 }} 
+              size="sm"
               onPress={() => onOpenChange(false)}
             >
               {t('common.cancel', 'Cancel')}
             </Button>
             <Button 
-              style={{ flex: 1 }} 
+              size="sm"
               onPress={handleSave}
               loading={createMutation.isPending}
               disabled={!name.trim()}
@@ -130,5 +129,6 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     gap: 12,
+    justifyContent: 'space-between',
   }
 });

@@ -121,6 +121,7 @@ export default {
     initialStock: "Initial Stock",
     saveProduct: "Save Product",
     editProduct: "Edit",
+    isActive: "Is Active",
     stockQuantity: "Stock Quantity",
     available: "Available",
     reserved: "Reserved",
@@ -139,11 +140,13 @@ export default {
       description: "Enter product description",
       selectCategory: "Select category",
       selectBrandCategory: "Select brand category",
+      selectUnit: "Select unit",
       searchCategory: "Search category...",
       searchBrand: "Search brand..."
     },
     currency: "Currency",
     brandCategory: "Brand Category",
+    unit: "Unit",
     noCategoryFound: "No category found.",
     noBrandFound: "No brand found.",
     filters: "Filters",
@@ -177,6 +180,18 @@ export default {
     },
     errors: {
       createFailed: "Could not create brand category"
+    }
+  },
+  units: {
+    addUnit: "Add Unit",
+    name: "Unit Name",
+    shortName: "Short Name (e.g. kg)",
+    placeholders: {
+      name: "Enter unit name",
+      shortName: "e.g. kg, pcs"
+    },
+    errors: {
+      createFailed: "Could not create unit"
     }
   }
 };

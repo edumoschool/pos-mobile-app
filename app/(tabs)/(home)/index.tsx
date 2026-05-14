@@ -27,7 +27,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SearchBar } from '@/components/ui/searchbar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
+import { Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverClose } from '@/components/ui/popover';
+import { useBottomSheet } from '@/components/ui/bottom-sheet';
+import { SnapSheet } from '@/components/ui/snap-sheet';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
@@ -45,7 +47,6 @@ export default function HomeScreen() {
   const listRef = useRef<any>(null);
 
   const { isVisible: isAddClientOpen, open: openAddClient, close: closeAddClient } = useBottomSheet();
-  const { isVisible: isFilterOpen, open: openFilter, close: closeFilter } = useBottomSheet();
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
 
@@ -76,12 +77,12 @@ export default function HomeScreen() {
     isFetchingNextPage: isFetchingNextClients
   } = useInfiniteQuery({
     queryKey: ['clients', searchQuery, clientSortBy, clientOrder],
-    queryFn: ({ pageParam = 1 }) => clientsApi.getAll({ 
-      page: pageParam, 
-      limit: 20, 
-      search: searchQuery || undefined, 
-      sortBy: clientSortBy, 
-      order: clientOrder 
+    queryFn: ({ pageParam = 1 }) => clientsApi.getAll({
+      page: pageParam,
+      limit: 20,
+      search: searchQuery || undefined,
+      sortBy: clientSortBy,
+      order: clientOrder
     }),
     getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
@@ -231,7 +232,7 @@ export default function HomeScreen() {
 
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
-          onPress={() => router.push('/products' as any)}
+            onPress={() => router.push('/products' as any)}
             style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
           >
             <ShoppingBag size={20} color={text} />
@@ -285,21 +286,60 @@ export default function HomeScreen() {
 
         {/* Filter & Sort Buttons */}
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity
-            onPress={openFilter}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              backgroundColor: clientSortBy !== 'alphabetic' ? primary : card,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderColor: clientSortBy !== 'alphabetic' ? primary : border + '80',
-              borderWidth: 1,
-            }}
-          >
-            <Filter size={20} color={clientSortBy !== 'alphabetic' ? primaryForeground : primary} />
-          </TouchableOpacity>
+          <Popover>
+            <PopoverTrigger asChild>
+              <TouchableOpacity
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  backgroundColor: clientSortBy !== 'alphabetic' ? primary : card,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderColor: clientSortBy !== 'alphabetic' ? primary : border + '80',
+                  borderWidth: 1,
+                }}
+              >
+                <Filter size={20} color={clientSortBy !== 'alphabetic' ? primaryForeground : primary} />
+              </TouchableOpacity>
+            </PopoverTrigger>
+            <PopoverContent side="top" align="end" maxWidth={200} style={{ minWidth: 200, padding: 0 }}>
+              <PopoverBody style={{ padding: 12 }}>
+                <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 12, color: text }}>
+                  {t('home.sortBy')}
+                </Text>
+                <View style={{ gap: 8 }}>
+                  {[
+                    { label: t('home.sortOptions.alphabetic'), value: 'alphabetic' },
+                    { label: t('home.sortOptions.createdAt'), value: 'createdAt' },
+                    { label: t('home.sortOptions.balance'), value: 'clientTransAmount' },
+                  ].map((opt) => (
+                    <PopoverClose key={opt.value} asChild>
+                      <TouchableOpacity
+                        onPress={() => {
+                          setClientSortBy(opt.value as any);
+                        }}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingVertical: 12,
+                          paddingHorizontal: 16,
+                          backgroundColor: clientSortBy === opt.value ? primary + '15' : 'transparent',
+                          borderRadius: 12,
+                        }}
+                      >
+                        <Text style={{ color: clientSortBy === opt.value ? primary : text, fontWeight: clientSortBy === opt.value ? '600' : '400' }}>
+                          {opt.label}
+                        </Text>
+                        {clientSortBy === opt.value && <Check size={18} color={primary} />}
+                      </TouchableOpacity>
+                    </PopoverClose>
+                  ))}
+                </View>
+              </PopoverBody>
+            </PopoverContent>
+          </Popover>
 
           <TouchableOpacity
             onPress={() => setClientOrder(clientOrder === 'asc' ? 'desc' : 'asc')}
@@ -349,7 +389,7 @@ export default function HomeScreen() {
               return <ActivityIndicator size="small" color={primary} style={{ marginVertical: 16 }} />;
             }}
             renderItem={({ item }) => (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => {
                   if (selectedIndex === 0) {
                     router.push(`/clients/${item.id}` as any);
@@ -420,8 +460,8 @@ export default function HomeScreen() {
         pointerEvents: 'box-none'
       }}>
         {(selectedIndex === 0 || selectedIndex === 1) && (
-          <TouchableOpacity 
-            onPress={handleDownloadExcel} 
+          <TouchableOpacity
+            onPress={handleDownloadExcel}
             style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}
           >
             {downloadExcelMutation.isPending ? (
@@ -437,11 +477,11 @@ export default function HomeScreen() {
       </View>
 
       {/* ── Add Client Bottom Sheet ───────────────────────────── */}
-      <BottomSheet
+      <SnapSheet
         isVisible={isAddClientOpen}
         onClose={closeAddClient}
         title={t('home.addClient')}
-        snapPoints={[0.45]}
+        snapHeight={0.45}
       >
         <View style={{ gap: 20 }}>
           <View>
@@ -499,52 +539,7 @@ export default function HomeScreen() {
           </Button>
         </View>
         <AvoidKeyboard offset={20} />
-      </BottomSheet>
-
-      {/* ── Filter Bottom Sheet ──────────────────────────────── */}
-      <BottomSheet
-        isVisible={isFilterOpen}
-        onClose={closeFilter}
-        title={t('common.filter')}
-        snapPoints={[0.35]}
-      >
-        <View style={{ gap: 20 }}>
-          <View>
-            <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 12, color: text }}>
-              {t('home.sortBy')}
-            </Text>
-            <View style={{ gap: 8 }}>
-              {[
-                { label: t('home.sortOptions.alphabetic'), value: 'alphabetic' },
-                { label: t('home.sortOptions.createdAt'), value: 'createdAt' },
-                { label: t('home.sortOptions.balance'), value: 'clientTransAmount' },
-              ].map((opt) => (
-                <TouchableOpacity
-                  key={opt.value}
-                  onPress={() => {
-                    setClientSortBy(opt.value as any);
-                    closeFilter();
-                  }}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    backgroundColor: clientSortBy === opt.value ? primary + '15' : 'transparent',
-                    borderRadius: 12,
-                  }}
-                >
-                  <Text style={{ color: clientSortBy === opt.value ? primary : text, fontWeight: clientSortBy === opt.value ? '600' : '400' }}>
-                    {opt.label}
-                  </Text>
-                  {clientSortBy === opt.value && <Check size={18} color={primary} />}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        </View>
-      </BottomSheet>
+      </SnapSheet>
 
     </View>
   );

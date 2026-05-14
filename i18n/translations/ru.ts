@@ -121,6 +121,7 @@ export default {
     initialStock: "Начальный остаток",
     saveProduct: "Сохранить товар",
     editProduct: "Изменить",
+    isActive: "Активен",
     stockQuantity: "Количество на складе",
     available: "Доступно",
     reserved: "Зарезервировано",
@@ -139,11 +140,13 @@ export default {
       description: "Введите описание товара",
       selectCategory: "Выберите категорию",
       selectBrandCategory: "Выберите категорию бренда",
+      selectUnit: "Выберите единицу измерения",
       searchCategory: "Поиск категории...",
       searchBrand: "Поиск бренда..."
     },
     currency: "Валюта",
     brandCategory: "Категория бренда",
+    unit: "Единица измерения",
     noCategoryFound: "Категория не найдена.",
     noBrandFound: "Бренд не найден.",
     filters: "Фильтры",
@@ -177,6 +180,18 @@ export default {
     },
     errors: {
       createFailed: "Не удалось создать категорию бренда"
+    }
+  },
+  units: {
+    addUnit: "Добавить единицу",
+    name: "Название единицы",
+    shortName: "Краткое название (напр. кг)",
+    placeholders: {
+      name: "Введите название единицы",
+      shortName: "напр. кг, шт"
+    },
+    errors: {
+      createFailed: "Не удалось создать единицу измерения"
     }
   }
 };

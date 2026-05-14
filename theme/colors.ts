@@ -29,153 +29,153 @@ export const Fonts = Platform.select({
 export const lightColors = {
   // Base colors
   background: '#FFFFFF',
-  foreground: '#000000',
+  foreground: '#0F172A', // Slate 900
 
   // Card colors
-  card: '#F2F2F7',
-  cardForeground: '#000000',
+  card: '#F8FAFC', // Slate 50
+  cardForeground: '#0F172A',
 
   // Popover colors
-  popover: '#F2F2F7',
-  popoverForeground: '#000000',
+  popover: '#FFFFFF',
+  popoverForeground: '#0F172A',
 
   // Primary colors
-  primary: '#0457f0ff',
-  primaryForeground: '#fcfafaff',
+  primary: '#2563EB', // Blue 600
+  primaryForeground: '#FFFFFF',
 
   // Secondary colors
-  secondary: '#F2F2F7',
-  secondaryForeground: '#18181b',
+  secondary: '#F1F5F9', // Slate 100
+  secondaryForeground: '#0F172A',
 
   // Muted colors
-  muted: '#78788033',
-  mutedForeground: '#71717a',
+  muted: '#F1F5F9', // Slate 100
+  mutedForeground: '#64748B', // Slate 500
 
   // Accent colors
-  accent: '#F2F2F7',
-  accentForeground: '#18181b',
+  accent: '#F1F5F9',
+  accentForeground: '#0F172A',
 
   // Destructive colors
-  destructive: '#ef4444',
+  destructive: '#EF4444', // Red 600
   destructiveForeground: '#FFFFFF',
 
   // Border and input
-  border: '#C6C6C8',
-  input: '#e4e4e7',
-  ring: '#a1a1aa',
+  border: '#E2E8F0', // Slate 200
+  input: '#E2E8F0',
+  ring: '#2563EB',
 
   // Text colors
-  text: '#000000',
-  textMuted: '#71717a',
+  text: '#0F172A',
+  textMuted: '#64748B',
 
   // Legacy support for existing components
-  tint: '#18181b',
-  icon: '#71717a',
-  tabIconDefault: '#71717a',
-  tabIconSelected: '#18181b',
+  tint: '#2563EB',
+  icon: '#64748B',
+  tabIconDefault: '#94A3B8',
+  tabIconSelected: '#2563EB',
 
   // Default buttons, links, Send button, selected tabs
-  blue: '#007AFF',
+  blue: '#3B82F6',
 
   // Success states, FaceTime buttons, completed tasks
-  green: '#34C759',
+  green: '#10B981',
 
   // Delete buttons, error states, critical alerts
-  red: '#FF3B30',
+  red: '#EF4444',
 
   // VoiceOver highlights, warning states
-  orange: '#FF9500',
+  orange: '#F59E0B',
 
   // Notes app accent, Reminders highlights
-  yellow: '#FFCC00',
+  yellow: '#FBBF24',
 
   // Pink accent color for various UI elements
-  pink: '#FF2D92',
+  pink: '#EC4899',
 
   // Purple accent for creative apps and features
-  purple: '#AF52DE',
+  purple: '#8B5CF6',
 
   // Teal accent for communication features
-  teal: '#5AC8FA',
+  teal: '#14B8A6',
 
   // Indigo accent for system features
-  indigo: '#5856D6',
+  indigo: '#6366F1',
 };
 
 export const darkColors = {
   // Base colors
-  background: '#000000',
-  foreground: '#FFFFFF',
+  background: '#020617', // Slate 950
+  foreground: '#F8FAFC', // Slate 50
 
   // Card colors
-  card: '#1C1C1E',
-  cardForeground: '#FFFFFF',
+  card: '#0F172A', // Slate 900
+  cardForeground: '#F8FAFC',
 
   // Popover colors
-  popover: '#18181b',
-  popoverForeground: '#FFFFFF',
+  popover: '#0F172A',
+  popoverForeground: '#F8FAFC',
 
   // Primary colors
-  primary: '#0540afff',
-  primaryForeground: '#fcfafaff',
+  primary: '#3B82F6', // Blue 500
+  primaryForeground: '#FFFFFF',
 
   // Secondary colors
-  secondary: '#1C1C1E',
-  secondaryForeground: '#FFFFFF',
+  secondary: '#1E293B', // Slate 800
+  secondaryForeground: '#F8FAFC',
 
   // Muted colors
-  muted: '#78788033',
-  mutedForeground: '#a1a1aa',
+  muted: '#1E293B',
+  mutedForeground: '#94A3B8', // Slate 400
 
   // Accent colors
-  accent: '#1C1C1E',
-  accentForeground: '#FFFFFF',
+  accent: '#1E293B',
+  accentForeground: '#F8FAFC',
 
   // Destructive colors
-  destructive: '#dc2626',
+  destructive: '#DC2626', // Red 600
   destructiveForeground: '#FFFFFF',
 
-  // Border and input - using alpha values for better blending
-  border: '#38383A',
-  input: 'rgba(255, 255, 255, 0.15)',
-  ring: '#71717a',
+  // Border and input
+  border: '#1E293B',
+  input: '#1E293B',
+  ring: '#3B82F6',
 
   // Text colors
-  text: '#FFFFFF',
-  textMuted: '#a1a1aa',
+  text: '#F8FAFC',
+  textMuted: '#94A3B8',
 
   // Legacy support for existing components
-  tint: '#FFFFFF',
-  icon: '#a1a1aa',
-  tabIconDefault: '#a1a1aa',
-  tabIconSelected: '#FFFFFF',
+  tint: '#3B82F6',
+  icon: '#94A3B8',
+  tabIconDefault: '#475569',
+  tabIconSelected: '#3B82F6',
 
   // Default buttons, links, Send button, selected tabs
-  blue: '#0A84FF',
+  blue: '#60A5FA',
 
   // Success states, FaceTime buttons, completed tasks
-  green: '#30D158',
+  green: '#34D399',
 
   // Delete buttons, error states, critical alerts
-  red: '#FF453A',
+  red: '#F87171',
 
   // VoiceOver highlights, warning states
-  orange: '#FF9F0A',
+  orange: '#FBBF24',
 
   // Notes app accent, Reminders highlights
-  yellow: '#FFD60A',
+  yellow: '#FDE047',
 
   // Pink accent color for various UI elements
-  pink: '#FF375F',
+  pink: '#F472B6',
 
   // Purple accent for creative apps and features
-  purple: '#BF5AF2',
+  purple: '#A78BFA',
 
   // Teal accent for communication features
-  teal: '#64D2FF',
+  teal: '#2DD4BF',
 
   // Indigo accent for system features
-  indigo: '#5E5CE6',
+  indigo: '#818CF8',
 };
 
 export const Colors = {

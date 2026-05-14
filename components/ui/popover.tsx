@@ -400,7 +400,12 @@ export function PopoverClose({
 
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children, {
-      onPress: handlePress,
+      onPress: (e: any) => {
+        if ((children.props as any).onPress) {
+          (children.props as any).onPress(e);
+        }
+        handlePress();
+      },
       style: [(children.props as any).style, style],
     } as any);
   }
@@ -415,7 +420,7 @@ export function PopoverClose({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'transparent',
   },
   content: {
     position: 'absolute',

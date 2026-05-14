@@ -7,16 +7,17 @@ import { useColor } from '@/hooks/useColor';
 import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { categoriesApi } from '@/api/catalog';
+import { unitsApi } from '@/api/catalog';
 
-interface CategoryModalProps {
+interface UnitModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function CategoryModal({ open, onOpenChange }: CategoryModalProps) {
+export function UnitModal({ open, onOpenChange }: UnitModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
+  const [shortName, setShortName] = useState('');
   
   const bg = useColor('background');
   const card = useColor('card');
@@ -26,20 +27,21 @@ export function CategoryModal({ open, onOpenChange }: CategoryModalProps) {
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string }) => categoriesApi.create(data),
+    mutationFn: (data: { name: string; shortName: string }) => unitsApi.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['units'] });
       setName('');
+      setShortName('');
       onOpenChange(false);
     },
     onError: () => {
-      Alert.alert(t('common.error'), t('categories.errors.createFailed'));
+      Alert.alert(t('common.error'), t('units.errors.createFailed'));
     }
   });
 
   const handleSave = () => {
-    if (!name.trim()) return;
-    createMutation.mutate({ name });
+    if (!name.trim() || !shortName.trim()) return;
+    createMutation.mutate({ name, shortName });
   };
 
   return (
@@ -52,18 +54,27 @@ export function CategoryModal({ open, onOpenChange }: CategoryModalProps) {
       <View style={styles.overlay}>
         <View style={[styles.content, { backgroundColor: card, borderColor: border }]}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t('categories.addCategory')}</Text>
+            <Text style={styles.title}>{t('units.addUnit')}</Text>
             <TouchableOpacity onPress={() => onOpenChange(false)} style={styles.closeBtn}>
               <X size={20} color={text} />
             </TouchableOpacity>
           </View>
           
           <View style={styles.body}>
+            <Text style={styles.label}>{t('units.name') || 'Unit Name'}</Text>
             <Input
-              placeholder={t('categories.placeholders.name')}
+              placeholder={t('units.placeholders.name')}
               value={name}
               onChangeText={setName}
               autoFocus
+              containerStyle={{ marginBottom: 16 }}
+            />
+            
+            <Text style={styles.label}>{t('units.shortName') || 'Short Name (e.g. kg)'}</Text>
+            <Input
+              placeholder={t('units.placeholders.shortName')}
+              value={shortName}
+              onChangeText={setShortName}
             />
           </View>
           
@@ -73,15 +84,15 @@ export function CategoryModal({ open, onOpenChange }: CategoryModalProps) {
               size="sm"
               onPress={() => onOpenChange(false)}
             >
-              {t('common.cancel', 'Cancel')}
+              {t('common.cancel')}
             </Button>
             <Button 
               size="sm"
               onPress={handleSave}
               loading={createMutation.isPending}
-              disabled={!name.trim()}
+              disabled={!name.trim() || !shortName.trim()}
             >
-              {t('common.save', 'Save')}
+              {t('common.save')}
             </Button>
           </View>
         </View>

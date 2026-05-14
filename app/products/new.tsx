@@ -17,24 +17,14 @@ import * as ImagePicker from 'expo-image-picker';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
-import { categoriesApi } from '@/api/catalog';
+import { categoriesApi, brandCategoriesApi, unitsApi } from '@/api/catalog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
-import { brandCategoriesApi } from '@/api/catalog';
 import { CategoryModal } from '@/components/products/category-modal';
 import { BrandCategoryModal } from '@/components/products/brand-category-modal';
-import {
-  DropdownMenuItem,
-  ExposedDropdownMenuBox,
-  ExposedDropdownMenu,
-  Host as HostAndroid,
-  Text as TextAndroid,
-  TextField as TextFieldAndroid,
-} from '@expo/ui/jetpack-compose';
-import { menuAnchor } from '@expo/ui/jetpack-compose/modifiers';
-import { Host as HostIOS, Picker as PickerIOS, Text as TextIOS } from '@expo/ui/swift-ui';
-import { pickerStyle, tag } from '@expo/ui/swift-ui/modifiers';
+import { UnitModal } from '@/components/products/unit-modal';
+import { Picker } from '@react-native-picker/picker';
 
 function NativePicker({ 
   value, 
@@ -47,72 +37,23 @@ function NativePicker({
   options: { label: string, value: string }[];
   placeholder: string;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const selectedLabel = options.find(o => o.value === value)?.label || placeholder;
+  const text = useColor('text');
 
-  if (Platform.OS === 'android') {
-    return (
-      <HostAndroid matchContents>
-        <ExposedDropdownMenuBox expanded={expanded} onExpandedChange={setExpanded}>
-          <TextFieldAndroid
-            defaultValue={selectedLabel}
-            key={value}
-            readOnly
-            modifiers={[menuAnchor()]}
-          />
-          <ExposedDropdownMenu expanded={expanded} onDismissRequest={() => setExpanded(false)}>
-            <DropdownMenuItem
-                key="placeholder"
-                onClick={() => {
-                  onValueChange('');
-                  setExpanded(false);
-                }}>
-                <DropdownMenuItem.Text>
-                  <TextAndroid>{placeholder}</TextAndroid>
-                </DropdownMenuItem.Text>
-              </DropdownMenuItem>
-            {options.map(opt => (
-              <DropdownMenuItem
-                key={opt.value}
-                onClick={() => {
-                  onValueChange(opt.value);
-                  setExpanded(false);
-                }}>
-                <DropdownMenuItem.Text>
-                  <TextAndroid>{opt.label}</TextAndroid>
-                </DropdownMenuItem.Text>
-              </DropdownMenuItem>
-            ))}
-          </ExposedDropdownMenu>
-        </ExposedDropdownMenuBox>
-      </HostAndroid>
-    );
-  }
-
-  if (Platform.OS === 'ios') {
-    return (
-      <HostIOS matchContents>
-        <PickerIOS
-          modifiers={[pickerStyle('menu')]}
-          label={placeholder}
-          selection={value || placeholder}
-          onSelectionChange={selection => {
-            onValueChange(selection === placeholder ? '' : selection);
-          }}>
-          <TextIOS key={placeholder} modifiers={[tag(placeholder)]}>
-            {placeholder}
-          </TextIOS>
-          {options.map(opt => (
-            <TextIOS key={opt.value} modifiers={[tag(opt.value)]}>
-              {opt.label}
-            </TextIOS>
-          ))}
-        </PickerIOS>
-      </HostIOS>
-    );
-  }
-
-  return null;
+  return (
+    <Picker
+      selectedValue={value || ''}
+      onValueChange={(itemValue) => onValueChange(itemValue)}
+      style={{ color: text, width: '100%', height: '100%' }}
+      itemStyle={{ fontSize: 14 }}
+      dropdownIconColor={text}
+      mode="dropdown"
+    >
+      <Picker.Item label={placeholder} value="" />
+      {options.map((opt) => (
+        <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
+      ))}
+    </Picker>
+  );
 }
 
 export default function AddProductScreen() {
@@ -124,6 +65,7 @@ export default function AddProductScreen() {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [brandCategoryId, setBrandCategoryId] = useState('');
+  const [unitId, setUnitId] = useState('');
   const [costPrice, setCostPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [currency, setCurrency] = useState<'UZS' | 'USD'>('UZS');
@@ -133,6 +75,7 @@ export default function AddProductScreen() {
 
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isBrandCategoryModalOpen, setIsBrandCategoryModalOpen] = useState(false);
+  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -151,6 +94,11 @@ export default function AddProductScreen() {
   const { data: brandCategories } = useQuery({
     queryKey: ['brandCategories'],
     queryFn: () => brandCategoriesApi.getAll(),
+  });
+
+  const { data: units } = useQuery({
+    queryKey: ['units'],
+    queryFn: () => unitsApi.getAll(),
   });
 
   const createMutation = useMutation({
@@ -194,6 +142,7 @@ export default function AddProductScreen() {
       description,
       categoryId: categoryId || undefined,
       brandCategoryId: brandCategoryId || undefined,
+      unitId: unitId || undefined,
       costPrice: parseFloat(costPrice) || 0,
       sellingPrice: parseFloat(sellingPrice) || 0,
       currency,
@@ -209,6 +158,10 @@ export default function AddProductScreen() {
   const brandCategoryOptions = React.useMemo(() => {
     return brandCategories?.map(b => ({ value: b.id, label: b.name })) || [];
   }, [brandCategories]);
+
+  const unitOptions = React.useMemo(() => {
+    return units?.map(u => ({ value: u.id, label: u.name })) || [];
+  }, [units]);
 
   return (
     <>
@@ -299,13 +252,33 @@ export default function AddProductScreen() {
                   value={brandCategoryId}
                   onValueChange={setBrandCategoryId}
                   options={brandCategoryOptions}
-                  placeholder={t('products.placeholders.selectBrandCategory')}
+                  placeholder={t('products.placeholders.selectBrandCategory') || 'Select brand category'}
                 />
               </View>
             </View>
             <TouchableOpacity 
               style={[styles.plusButton, { backgroundColor: primary + '15' }]}
               onPress={() => setIsBrandCategoryModalOpen(true)}
+            >
+              <Plus size={20} color={primary} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>{t('products.unit') || 'Unit'}</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: card, borderColor: border }]}>
+                <NativePicker
+                  value={unitId}
+                  onValueChange={setUnitId}
+                  options={unitOptions}
+                  placeholder={t('products.placeholders.selectUnit') || 'Select unit'}
+                />
+              </View>
+            </View>
+            <TouchableOpacity 
+              style={[styles.plusButton, { backgroundColor: primary + '15' }]}
+              onPress={() => setIsUnitModalOpen(true)}
             >
               <Plus size={20} color={primary} strokeWidth={2.5} />
             </TouchableOpacity>
@@ -412,6 +385,10 @@ export default function AddProductScreen() {
       <BrandCategoryModal
         open={isBrandCategoryModalOpen}
         onOpenChange={setIsBrandCategoryModalOpen}
+      />
+      <UnitModal
+        open={isUnitModalOpen}
+        onOpenChange={setIsUnitModalOpen}
       />
     </>
   );

@@ -32,7 +32,7 @@ export default function ProductsScreen() {
   const primaryForeground = useColor('primaryForeground');
   const red = useColor('red');
   const green = useColor('green');
-  const orange = '#FF9500';
+  const orange = useColor('orange');
 
   const { data: categories } = useQuery({
     queryKey: ['categories'],
@@ -115,9 +115,6 @@ export default function ProductsScreen() {
             showClearButton
           />
         </View>
-        <TouchableOpacity style={[styles.filterButton, { borderColor: border, backgroundColor: card }]}>
-          <Filter size={18} color={text} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.filtersContainer}>
@@ -128,44 +125,47 @@ export default function ProductsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Category Filter */}
-        <View style={{ marginHorizontal: 16, marginBottom: 12, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: 'hidden' }}>
-          <Picker
-            selectedValue={selectedCategory || ''}
-            onValueChange={(itemValue) => setSelectedCategory(itemValue === '' ? null : itemValue)}
-            style={{ color: text }}
-            dropdownIconColor={text}
-          >
-            <Picker.Item label={t('products.allCategories')} value="" />
-            {categories?.map((cat) => (
-              <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
-            ))}
-          </Picker>
-        </View>
+        {/* Pickers Row */}
+        <View style={{ flexDirection: 'row', paddingHorizontal: 16, gap: 12, marginBottom: 12 }}>
+          {/* Category Filter */}
+          <View style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, justifyContent: 'center' }}>
+            <Picker
+              selectedValue={selectedCategory || ''}
+              onValueChange={(itemValue) => setSelectedCategory(itemValue === '' ? null : itemValue)}
+              style={{ color: text }}
+              itemStyle={{ height: 40, fontSize: 14 }}
+              dropdownIconColor={text}
+              mode="dropdown"
+            >
+              <Picker.Item label={t('products.allCategories')} value="" />
+              {categories?.map((cat) => (
+                <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
+              ))}
+            </Picker>
+          </View>
 
-        {/* Brand Category Filter */}
-        <View style={{ marginHorizontal: 16, marginBottom: 12, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: 'hidden' }}>
-          <Picker
-            selectedValue={selectedBrandCategory || ''}
-            onValueChange={(itemValue) => setSelectedBrandCategory(itemValue === '' ? null : itemValue)}
-            style={{ color: text }}
-            dropdownIconColor={text}
-          >
-            <Picker.Item label={t('products.allBrands')} value="" />
-            {brandCategories?.map((brand) => (
-              <Picker.Item key={brand.id} label={brand.name} value={brand.id} />
-            ))}
-          </Picker>
+          {/* Brand Category Filter */}
+          <View style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, justifyContent: 'center' }}>
+            <Picker
+              selectedValue={selectedBrandCategory || ''}
+              onValueChange={(itemValue) => setSelectedBrandCategory(itemValue === '' ? null : itemValue)}
+              style={{ color: text}}
+              itemStyle={{ height: 40, fontSize: 14 }}
+              dropdownIconColor={text}
+              mode="dropdown"
+            >
+              <Picker.Item label={t('products.allBrands')} value="" />
+              {brandCategories?.map((brand) => (
+                <Picker.Item key={brand.id} label={brand.name} value={brand.id} />
+              ))}
+            </Picker>
+          </View>
         </View>
       </View>
 
       {/* ── Category Row ────────────────────────────────────── */}
       <View style={styles.categoryRow}>
         <Text style={{ fontSize: 13, color: muted }}>{totalCount.toLocaleString()} {t('products.items')}</Text>
-        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Text style={{ fontSize: 13, color: text }}>{t('products.sortBy')}: {t('products.newest')}</Text>
-          <ChevronDown size={14} color={muted} />
-        </TouchableOpacity>
       </View>
 
       {/* ── Product List ────────────────────────────────────── */}
@@ -219,9 +219,6 @@ export default function ProductsScreen() {
                     <Text style={{ fontSize: 12, color: muted, marginTop: 2 }}>
                       {t('products.brand')}: {item.brandCategory?.name || t('products.na')}
                     </Text>
-                    <Text style={{ fontSize: 11, color: muted, marginTop: 1 }}>
-                      {t('products.sku')}: {item.id.substring(0, 8).toUpperCase()}
-                    </Text>
                   </View>
 
                   {/* Right side — status, qty, price */}
@@ -232,7 +229,7 @@ export default function ProductsScreen() {
                       </Text>
                     </View>
                     <Text style={{ fontSize: 16, fontWeight: '700', color: text, marginTop: 4 }}>
-                      {qty}
+                      {qty} {item.unit?.shortName || ''}
                     </Text>
                     <Text style={{ fontSize: 13, fontWeight: '500', color: muted, marginTop: 1 }}>
                       {item.sellingPrice.toLocaleString()} {item.currency}

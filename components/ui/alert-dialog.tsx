@@ -141,13 +141,13 @@ export function AlertDialog({
                 </CardHeader>
               )}
               {children ? <CardContent>{children}</CardContent> : null}
-              <CardFooter>
+              <CardFooter style={{ flexDirection: 'row', gap: 12 }}>
                 {showCancelButton && (
-                  <Button variant='outline' onPress={handleCancel}>
+                  <Button variant='outline' size='sm' onPress={handleCancel}>
                     {cancelText}
                   </Button>
                 )}
-                <Button style={{ flex: 1 }} onPress={handleConfirm}>
+                <Button size='sm' variant='destructive' onPress={handleConfirm}>
                   {confirmText}
                 </Button>
               </CardFooter>
