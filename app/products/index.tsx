@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Image } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router, Stack } from 'expo-router';
 import { Plus, Filter, Package, ChevronDown, ChevronLeft } from 'lucide-react-native';
@@ -10,6 +10,7 @@ import { FlashList } from '@shopify/flash-list';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
+import { categoriesApi, brandCategoriesApi } from '@/api/catalog';
 import { SearchBar } from '@/components/ui/searchbar';
 import { Product } from '@/types';
 
@@ -18,6 +19,8 @@ export default function ProductsScreen() {
   const insets = useSafeAreaInsets();
   const listRef = useRef<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedBrandCategory, setSelectedBrandCategory] = useState<string | null>(null);
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -30,6 +33,16 @@ export default function ProductsScreen() {
   const green = useColor('green');
   const orange = '#FF9500';
 
+  const { data: categories } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesApi.getAll(),
+  });
+
+  const { data: brandCategories } = useQuery({
+    queryKey: ['brandCategories'],
+    queryFn: () => brandCategoriesApi.getAll(),
+  });
+
   const {
     data: productsData,
     isLoading,
@@ -37,9 +50,15 @@ export default function ProductsScreen() {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ['products', searchQuery],
+    queryKey: ['products', searchQuery, selectedCategory, selectedBrandCategory],
     queryFn: ({ pageParam = 1 }) =>
-      productsApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
+      productsApi.getAll({ 
+        page: pageParam, 
+        limit: 20, 
+        search: searchQuery || undefined,
+        categoryId: selectedCategory || undefined,
+        brandCategoryId: selectedBrandCategory || undefined
+      }),
     getNextPageParam: (lastPage) =>
       lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
@@ -100,13 +119,112 @@ export default function ProductsScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.filtersContainer}>
+        <View style={styles.filterHeader}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: text }}>Filters</Text>
+          <TouchableOpacity onPress={() => { setSelectedCategory(null); setSelectedBrandCategory(null); }}>
+            <Text style={{ fontSize: 14, color: primary, fontWeight: '500' }}>Clear all</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Category Filter */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScrollContent}
+        >
+          <TouchableOpacity
+            style={[
+              styles.filterPill,
+              { 
+                borderColor: !selectedCategory ? primary : border,
+                backgroundColor: !selectedCategory ? primary + '15' : card
+              }
+            ]}
+            onPress={() => setSelectedCategory(null)}
+          >
+            <Text style={{ 
+              color: !selectedCategory ? primary : text,
+              fontWeight: !selectedCategory ? '600' : '400'
+            }}>
+              All Categories
+            </Text>
+          </TouchableOpacity>
+          {categories?.map((cat) => (
+            <TouchableOpacity
+              key={cat.id}
+              style={[
+                styles.filterPill,
+                { 
+                  borderColor: selectedCategory === cat.id ? primary : border,
+                  backgroundColor: selectedCategory === cat.id ? primary + '15' : card
+                }
+              ]}
+              onPress={() => setSelectedCategory(cat.id)}
+            >
+              <Text style={{ 
+                color: selectedCategory === cat.id ? primary : text,
+                fontWeight: selectedCategory === cat.id ? '400' : '400'
+              }}>
+                {cat.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Brand Category Filter */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScrollContent}
+        >
+          <TouchableOpacity
+            style={[
+              styles.filterPill,
+              { 
+                borderColor: !selectedBrandCategory ? primary : border,
+                backgroundColor: !selectedBrandCategory ? primary + '15' : card
+              }
+            ]}
+            onPress={() => setSelectedBrandCategory(null)}
+          >
+            <Text style={{ 
+              color: !selectedBrandCategory ? primary : text,
+              fontWeight: !selectedBrandCategory ? '600' : '400'
+            }}>
+              All Brands
+            </Text>
+          </TouchableOpacity>
+          {brandCategories?.map((brand) => (
+            <TouchableOpacity
+              key={brand.id}
+              style={[
+                styles.filterPill,
+                { 
+                  borderColor: selectedBrandCategory === brand.id ? primary : border,
+                  backgroundColor: selectedBrandCategory === brand.id ? primary + '15' : card
+                }
+              ]}
+              onPress={() => setSelectedBrandCategory(brand.id)}
+            >
+              <Text style={{ 
+                color: selectedBrandCategory === brand.id ? primary : text,
+                fontWeight: selectedBrandCategory === brand.id ? '600' : '400'
+              }}>
+                {brand.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       {/* ── Category Row ────────────────────────────────────── */}
       <View style={styles.categoryRow}>
-        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: text }}>{t('products.allCategories')}</Text>
-          <ChevronDown size={16} color={muted} />
-        </TouchableOpacity>
         <Text style={{ fontSize: 13, color: muted }}>{totalCount.toLocaleString()} {t('products.items')}</Text>
+        <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={{ fontSize: 13, color: text }}>Sort by: Newest</Text>
+          <ChevronDown size={14} color={muted} />
+        </TouchableOpacity>
       </View>
 
       {/* ── Product List ────────────────────────────────────── */}
@@ -155,7 +273,10 @@ export default function ProductsScreen() {
                       {item.name}
                     </Text>
                     <Text style={{ fontSize: 12, color: muted, marginTop: 2 }}>
-                      {item.category?.name || t('products.uncategorized')}
+                      {item.category?.name || 'Uncategorized'}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: muted, marginTop: 2 }}>
+                      Brand: {item.brandCategory?.name || 'N/A'}
                     </Text>
                     <Text style={{ fontSize: 11, color: muted, marginTop: 1 }}>
                       SKU: {item.id.substring(0, 8).toUpperCase()}
@@ -244,6 +365,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  filtersContainer: {
+    paddingBottom: 8,
+  },
+  filterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  filterScrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  filterPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 18,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoryRow: {
     flexDirection: 'row',

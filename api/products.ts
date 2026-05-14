@@ -3,7 +3,7 @@ import type { Product, CreateProductPayload, UpdateProductPayload, PaginatedResp
 
 export const productsApi = {
   /** GET /products?search=&page=&limit= — list active products with inventory status */
-  getAll: async (params?: PaginationQuery & { search?: string }): Promise<PaginatedResponse<Product>> => {
+  getAll: async (params?: PaginationQuery & { search?: string, categoryId?: string, brandCategoryId?: string }): Promise<PaginatedResponse<Product>> => {
     const res = await api.get<PaginatedResponse<Product>>('/products', { params });
     return res.data;
   },
