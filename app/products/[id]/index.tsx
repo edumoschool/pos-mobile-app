@@ -111,7 +111,7 @@ export default function ProductDetailScreen() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
             <Badge variant="secondary" textStyle={{ fontSize: 12, paddingVertical: 2, paddingHorizontal: 6 }}>
-              {product.category?.name || 'Electronics'}
+              {product.category?.name || t('products.uncategorized')}
             </Badge>
             {product.brandCategory?.name && (
               <Badge variant="outline" textStyle={{ fontSize: 12, paddingVertical: 2, paddingHorizontal: 6 }}>
@@ -163,7 +163,7 @@ export default function ProductDetailScreen() {
           <View style={{ marginTop: 24 }}>
             <Text style={styles.sectionTitle}>{t('products.description')}</Text>
             <Text style={{ fontSize: 14, color: muted, lineHeight: 22, marginTop: 8 }}>
-              {product.description || 'No description provided for this product.'}
+              {product.description || t('products.noDescription')}
             </Text>
           </View>
         </View>

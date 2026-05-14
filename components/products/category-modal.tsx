@@ -33,7 +33,7 @@ export function CategoryModal({ open, onOpenChange }: CategoryModalProps) {
       onOpenChange(false);
     },
     onError: () => {
-      Alert.alert(t('common.error'), 'Could not create category');
+      Alert.alert(t('common.error'), t('categories.errors.createFailed'));
     }
   });
 
@@ -52,16 +52,16 @@ export function CategoryModal({ open, onOpenChange }: CategoryModalProps) {
       <View style={styles.overlay}>
         <View style={[styles.content, { backgroundColor: card, borderColor: border }]}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t('categories.addCategory', 'Add Category')}</Text>
+            <Text style={styles.title}>{t('categories.addCategory')}</Text>
             <TouchableOpacity onPress={() => onOpenChange(false)} style={styles.closeBtn}>
               <X size={20} color={text} />
             </TouchableOpacity>
           </View>
           
           <View style={styles.body}>
-            <Text style={styles.label}>{t('categories.name', 'Category Name')}</Text>
+            <Text style={styles.label}>{t('categories.name')}</Text>
             <Input
-              placeholder={t('categories.placeholders.name', 'Enter category name')}
+              placeholder={t('categories.placeholders.name')}
               value={name}
               onChangeText={setName}
               autoFocus

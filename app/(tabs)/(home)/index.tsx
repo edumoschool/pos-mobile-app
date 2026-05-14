@@ -66,7 +66,7 @@ export default function HomeScreen() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const tenantName = user?.tenant?.name || 'Mening biznesimu...';
+  const tenantName = user?.tenant?.name || t('home.defaultTenantName');
 
   const {
     data: clientsData,
@@ -124,9 +124,9 @@ export default function HomeScreen() {
   const getActiveData = () => {
     switch (selectedIndex) {
       case 0:
-        return clients.map(c => ({ id: c.id, name: c.fullName, phone: c.phone || 'N/A', subtext: c.notes || t('home.roles.client'), balance: '0 UZS', avatarUrl: (c as any).avatarUrl }));
+        return clients.map(c => ({ id: c.id, name: c.fullName, phone: c.phone || t('products.na'), subtext: c.notes || t('home.roles.client'), balance: '0 UZS', avatarUrl: (c as any).avatarUrl }));
       case 1:
-        return suppliers.map(s => ({ id: s.id, name: s.name, phone: s.phone || 'N/A', subtext: s.notes || t('home.roles.supplier'), balance: '0 UZS', avatarUrl: (s as any).avatarUrl }));
+        return suppliers.map(s => ({ id: s.id, name: s.name, phone: s.phone || t('products.na'), subtext: s.notes || t('home.roles.supplier'), balance: '0 UZS', avatarUrl: (s as any).avatarUrl }));
       case 2:
         return usersData.map(u => ({ id: u.id, name: u.fullName, phone: u.phone, subtext: u.role, balance: '0 UZS', avatarUrl: (u as any).avatarUrl }));
       default:
@@ -152,7 +152,7 @@ export default function HomeScreen() {
       } else if (selectedIndex === 1) {
         return suppliersApi.exportExcel();
       }
-      throw new Error("Export not supported for this tab");
+      throw new Error(t('home.exportNotSupported'));
     },
     onSuccess: (data) => {
       if (data?.url) {
@@ -160,7 +160,7 @@ export default function HomeScreen() {
       }
     },
     onError: () => {
-      Alert.alert(t('common.error'), "Eksport qilishda xatolik yuz berdi");
+      Alert.alert(t('common.error'), t('common.exportError'));
     }
   });
 
@@ -196,7 +196,7 @@ export default function HomeScreen() {
           }
         }
       } else {
-        Alert.alert(t('common.error'), "Kontaktlarga ruxsat berilmagan");
+        Alert.alert(t('common.error'), t('home.contactPermissionError'));
       }
     } catch (error) {
       console.log('Error picking contact:', error);
@@ -440,16 +440,16 @@ export default function HomeScreen() {
       <BottomSheet
         isVisible={isAddClientOpen}
         onClose={closeAddClient}
-        title="Mijoz qo'shish"
+        title={t('home.addClient')}
         snapPoints={[0.45]}
       >
         <View style={{ gap: 20 }}>
           <View>
             <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
-              Ism <Text style={{ color: red }}>*</Text>
+              {t('home.clientName')} <Text style={{ color: red }}>*</Text>
             </Text>
             <Input
-              placeholder="Mijozni ismini kiriting"
+              placeholder={t('home.placeholders.clientName')}
               value={newClientName}
               onChangeText={setNewClientName}
               variant="outline"
@@ -458,7 +458,7 @@ export default function HomeScreen() {
 
           <View>
             <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
-              Telefon <Text style={{ color: red }}>*</Text>
+              {t('home.clientPhone')} <Text style={{ color: red }}>*</Text>
             </Text>
             <View style={{
               flexDirection: 'row',
@@ -495,7 +495,7 @@ export default function HomeScreen() {
             loading={addClientMutation.isPending}
             style={{ marginTop: 12 }}
           >
-            Mijoz qo'shish
+            {t('home.addClient')}
           </Button>
         </View>
         <AvoidKeyboard offset={20} />

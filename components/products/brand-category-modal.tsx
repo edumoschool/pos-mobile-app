@@ -33,7 +33,7 @@ export function BrandCategoryModal({ open, onOpenChange }: BrandCategoryModalPro
       onOpenChange(false);
     },
     onError: () => {
-      Alert.alert(t('common.error'), 'Could not create brand category');
+      Alert.alert(t('common.error'), t('brandCategories.errors.createFailed'));
     }
   });
 
@@ -52,16 +52,16 @@ export function BrandCategoryModal({ open, onOpenChange }: BrandCategoryModalPro
       <View style={styles.overlay}>
         <View style={[styles.content, { backgroundColor: card, borderColor: border }]}>
           <View style={styles.header}>
-            <Text style={styles.title}>{t('brandCategories.addBrandCategory', 'Add Brand')}</Text>
+            <Text style={styles.title}>{t('brandCategories.addBrandCategory')}</Text>
             <TouchableOpacity onPress={() => onOpenChange(false)} style={styles.closeBtn}>
               <X size={20} color={text} />
             </TouchableOpacity>
           </View>
           
           <View style={styles.body}>
-            <Text style={styles.label}>{t('brandCategories.name', 'Brand Name')}</Text>
+            <Text style={styles.label}>{t('brandCategories.name')}</Text>
             <Input
-              placeholder={t('brandCategories.placeholders.name', 'Enter brand name')}
+              placeholder={t('brandCategories.placeholders.name')}
               value={name}
               onChangeText={setName}
               autoFocus

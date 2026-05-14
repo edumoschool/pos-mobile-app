@@ -40,7 +40,10 @@ export default {
     success: "Success",
     warning: "Warning",
     filter: "Filter",
-    fillRequiredFields: "Please fill in required fields"
+    fillRequiredFields: "Please fill in required fields",
+    exportError: "Error during export",
+    permissionsDenied: "Permission denied",
+    calculator: "Calculator"
   },
   home: {
     segments: {
@@ -64,6 +67,15 @@ export default {
     orderOptions: {
       asc: "Ascending",
       desc: "Descending"
+    },
+    addClient: "Add Client",
+    clientName: "Name",
+    clientPhone: "Phone",
+    defaultTenantName: "My Business",
+    exportNotSupported: "Export not supported for this tab",
+    contactPermissionError: "Contacts permission not granted",
+    placeholders: {
+      clientName: "Enter client name"
     }
   },
   clientDetail: {
@@ -133,6 +145,38 @@ export default {
     currency: "Currency",
     brandCategory: "Brand Category",
     noCategoryFound: "No category found.",
-    noBrandFound: "No brand found."
+    noBrandFound: "No brand found.",
+    filters: "Filters",
+    clearAll: "Clear all",
+    allBrands: "All Brands",
+    sortBy: "Sort by",
+    newest: "Newest",
+    brand: "Brand",
+    na: "N/A",
+    noDescription: "No description provided for this product.",
+    imageRequirements: "PNG, JPG up to 5MB",
+    errors: {
+      createFailed: "Could not create product"
+    }
+  },
+  categories: {
+    addCategory: "Add Category",
+    name: "Category Name",
+    placeholders: {
+      name: "Enter category name"
+    },
+    errors: {
+      createFailed: "Could not create category"
+    }
+  },
+  brandCategories: {
+    addBrandCategory: "Add Brand",
+    name: "Brand Name",
+    placeholders: {
+      name: "Enter brand name"
+    },
+    errors: {
+      createFailed: "Could not create brand category"
+    }
   }
 };

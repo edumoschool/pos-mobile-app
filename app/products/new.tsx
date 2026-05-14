@@ -161,7 +161,7 @@ export default function AddProductScreen() {
       router.back();
     },
     onError: (error) => {
-      Alert.alert(t('common.error'), 'Could not create product');
+      Alert.alert(t('common.error'), t('products.errors.createFailed'));
     }
   });
 
@@ -244,7 +244,7 @@ export default function AddProductScreen() {
                 <ImageIcon size={32} color={primary} />
               </View>
               <Text style={{ fontSize: 14, color: text, fontWeight: '600', marginTop: 12 }}>{t('products.uploadImage')}</Text>
-              <Text style={{ fontSize: 12, color: muted, marginTop: 4 }}>PNG, JPG up to 5MB</Text>
+              <Text style={{ fontSize: 12, color: muted, marginTop: 4 }}>{t('products.imageRequirements')}</Text>
             </View>
           )}
         </TouchableOpacity>

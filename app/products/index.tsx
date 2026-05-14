@@ -122,9 +122,9 @@ export default function ProductsScreen() {
 
       <View style={styles.filtersContainer}>
         <View style={styles.filterHeader}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: text }}>Filters</Text>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: text }}>{t('products.filters')}</Text>
           <TouchableOpacity onPress={() => { setSelectedCategory(null); setSelectedBrandCategory(null); }}>
-            <Text style={{ fontSize: 14, color: primary, fontWeight: '500' }}>Clear all</Text>
+            <Text style={{ fontSize: 14, color: primary, fontWeight: '500' }}>{t('products.clearAll')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -136,7 +136,7 @@ export default function ProductsScreen() {
             style={{ color: text }}
             dropdownIconColor={text}
           >
-            <Picker.Item label="All Categories" value="" />
+            <Picker.Item label={t('products.allCategories')} value="" />
             {categories?.map((cat) => (
               <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
             ))}
@@ -151,7 +151,7 @@ export default function ProductsScreen() {
             style={{ color: text }}
             dropdownIconColor={text}
           >
-            <Picker.Item label="All Brands" value="" />
+            <Picker.Item label={t('products.allBrands')} value="" />
             {brandCategories?.map((brand) => (
               <Picker.Item key={brand.id} label={brand.name} value={brand.id} />
             ))}
@@ -163,7 +163,7 @@ export default function ProductsScreen() {
       <View style={styles.categoryRow}>
         <Text style={{ fontSize: 13, color: muted }}>{totalCount.toLocaleString()} {t('products.items')}</Text>
         <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <Text style={{ fontSize: 13, color: text }}>Sort by: Newest</Text>
+          <Text style={{ fontSize: 13, color: text }}>{t('products.sortBy')}: {t('products.newest')}</Text>
           <ChevronDown size={14} color={muted} />
         </TouchableOpacity>
       </View>
@@ -214,13 +214,13 @@ export default function ProductsScreen() {
                       {item.name}
                     </Text>
                     <Text style={{ fontSize: 12, color: muted, marginTop: 2 }}>
-                      {item.category?.name || 'Uncategorized'}
+                      {item.category?.name || t('products.uncategorized')}
                     </Text>
                     <Text style={{ fontSize: 12, color: muted, marginTop: 2 }}>
-                      Brand: {item.brandCategory?.name || 'N/A'}
+                      {t('products.brand')}: {item.brandCategory?.name || t('products.na')}
                     </Text>
                     <Text style={{ fontSize: 11, color: muted, marginTop: 1 }}>
-                      SKU: {item.id.substring(0, 8).toUpperCase()}
+                      {t('products.sku')}: {item.id.substring(0, 8).toUpperCase()}
                     </Text>
                   </View>
 

@@ -40,7 +40,10 @@ export default {
     success: "Успешно",
     warning: "Предупреждение",
     filter: "Фильтрация",
-    fillRequiredFields: "Пожалуйста, заполните обязательные поля"
+    fillRequiredFields: "Пожалуйста, заполните обязательные поля",
+    exportError: "Ошибка при экспорте",
+    permissionsDenied: "Доступ запрещен",
+    calculator: "Калькулятор"
   },
   home: {
     segments: {
@@ -64,6 +67,15 @@ export default {
     orderOptions: {
       asc: "По возрастанию",
       desc: "По убыванию"
+    },
+    addClient: "Добавить клиента",
+    clientName: "Имя",
+    clientPhone: "Телефон",
+    defaultTenantName: "Мой бизнес",
+    exportNotSupported: "Экспорт не поддерживается для этой вкладки",
+    contactPermissionError: "Нет доступа к контактам",
+    placeholders: {
+      clientName: "Введите имя клиента"
     }
   },
   clientDetail: {
@@ -133,6 +145,38 @@ export default {
     currency: "Валюта",
     brandCategory: "Категория бренда",
     noCategoryFound: "Категория не найдена.",
-    noBrandFound: "Бренд не найден."
+    noBrandFound: "Бренд не найден.",
+    filters: "Фильтры",
+    clearAll: "Очистить все",
+    allBrands: "Все бренды",
+    sortBy: "Сортировка",
+    newest: "Новинки",
+    brand: "Бренд",
+    na: "Н/Д",
+    noDescription: "Описание для этого товара не предоставлено.",
+    imageRequirements: "PNG, JPG до 5МБ",
+    errors: {
+      createFailed: "Не удалось создать товар"
+    }
+  },
+  categories: {
+    addCategory: "Добавить категорию",
+    name: "Название категории",
+    placeholders: {
+      name: "Введите название категории"
+    },
+    errors: {
+      createFailed: "Не удалось создать категорию"
+    }
+  },
+  brandCategories: {
+    addBrandCategory: "Добавить бренд",
+    name: "Название бренда",
+    placeholders: {
+      name: "Введите название бренда"
+    },
+    errors: {
+      createFailed: "Не удалось создать категорию бренда"
+    }
   }
 };

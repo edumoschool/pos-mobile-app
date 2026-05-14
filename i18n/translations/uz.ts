@@ -40,7 +40,10 @@ export default {
     success: "Muvaffaqiyatli",
     warning: "Ogohlantirish",
     filter: "Filtrlash",
-    fillRequiredFields: "Iltimos, majburiy maydonlarni to'ldiring"
+    fillRequiredFields: "Iltimos, majburiy maydonlarni to'ldiring",
+    exportError: "Eksport qilishda xatolik yuz berdi",
+    permissionsDenied: "Ruxsat berilmagan",
+    calculator: "Kalkulator"
   },
   home: {
     segments: {
@@ -64,6 +67,15 @@ export default {
     orderOptions: {
       asc: "O'suvchi",
       desc: "Kamayuvchi"
+    },
+    addClient: "Mijoz qo'shish",
+    clientName: "Ism",
+    clientPhone: "Telefon",
+    defaultTenantName: "Mening biznesim",
+    exportNotSupported: "Ushbu bo'lim uchun eksport mavjud emas",
+    contactPermissionError: "Kontaktlarga ruxsat berilmagan",
+    placeholders: {
+      clientName: "Mijoz ismini kiriting"
     }
   },
   clientDetail: {
@@ -133,6 +145,38 @@ export default {
     currency: "Valyuta",
     brandCategory: "Brend kategoriyasi",
     noCategoryFound: "Kategoriya topilmadi.",
-    noBrandFound: "Brend topilmadi."
+    noBrandFound: "Brend topilmadi.",
+    filters: "Filtrlar",
+    clearAll: "Hammasini tozalash",
+    allBrands: "Barcha brendlar",
+    sortBy: "Saralash turi",
+    newest: "Yangi",
+    brand: "Brend",
+    na: "Mavjud emas",
+    noDescription: "Ushbu mahsulot uchun tavsif berilmagan.",
+    imageRequirements: "PNG, JPG 5MB gacha",
+    errors: {
+      createFailed: "Mahsulotni yaratib bo'lmadi"
+    }
+  },
+  categories: {
+    addCategory: "Kategoriya qo'shish",
+    name: "Kategoriya nomi",
+    placeholders: {
+      name: "Kategoriya nomini kiriting"
+    },
+    errors: {
+      createFailed: "Kategoriyani yaratib bo'lmadi"
+    }
+  },
+  brandCategories: {
+    addBrandCategory: "Brend qo'shish",
+    name: "Brend nomi",
+    placeholders: {
+      name: "Brend nomini kiriting"
+    },
+    errors: {
+      createFailed: "Brend kategoriyasini yaratib bo'lmadi"
+    }
   }
 };

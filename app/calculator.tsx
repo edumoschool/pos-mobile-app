@@ -202,7 +202,7 @@ export default function CalculatorScreen() {
       <Stack.Screen 
         options={{ 
           headerShown: true, 
-          title: "Kalkulator",
+          title: t('common.calculator'),
           headerLargeTitle: false,
           headerTransparent: true,
           headerLargeTitleShadowVisible: false,
