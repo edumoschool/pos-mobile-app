@@ -9,7 +9,8 @@ import {
   Image as ImageIcon, 
   ChevronDown,
   Upload,
-  Plus
+  Plus,
+  X
 } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -21,6 +22,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { brandCategoriesApi } from '@/api/catalog';
+import { CategoryModal } from '@/components/products/category-modal';
+import { BrandCategoryModal } from '@/components/products/brand-category-modal';
 import {
   DropdownMenuItem,
   ExposedDropdownMenuBox,
@@ -128,6 +131,9 @@ export default function AddProductScreen() {
   const [minQuantity, setMinQuantity] = useState('');
   const [image, setImage] = useState<any>(null);
 
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isBrandCategoryModalOpen, setIsBrandCategoryModalOpen] = useState(false);
+
   const bg = useColor('background');
   const card = useColor('card');
   const border = useColor('border');
@@ -223,7 +229,15 @@ export default function AddProductScreen() {
           onPress={pickImage}
         >
           {image ? (
-            <Image source={{ uri: image.uri }} style={styles.previewImage} />
+            <View style={styles.previewImageContainer}>
+              <Image source={{ uri: image.uri }} style={styles.previewImage} />
+              <TouchableOpacity
+                style={styles.removeImageBtn}
+                onPress={() => setImage(null)}
+              >
+                <X size={16} color="#FFF" />
+              </TouchableOpacity>
+            </View>
           ) : (
             <View style={{ alignItems: 'center' }}>
               <View style={[styles.uploadIcon, { backgroundColor: primary + '10' }]}>
@@ -271,7 +285,7 @@ export default function AddProductScreen() {
             </View>
             <TouchableOpacity 
               style={[styles.plusButton, { backgroundColor: primary + '15' }]}
-              onPress={() => {}}
+              onPress={() => setIsCategoryModalOpen(true)}
             >
               <Plus size={20} color={primary} strokeWidth={2.5} />
             </TouchableOpacity>
@@ -291,7 +305,7 @@ export default function AddProductScreen() {
             </View>
             <TouchableOpacity 
               style={[styles.plusButton, { backgroundColor: primary + '15' }]}
-              onPress={() => {}}
+              onPress={() => setIsBrandCategoryModalOpen(true)}
             >
               <Plus size={20} color={primary} strokeWidth={2.5} />
             </TouchableOpacity>
@@ -391,6 +405,14 @@ export default function AddProductScreen() {
 
       <AvoidKeyboard offset={20} />
       </View>
+      <CategoryModal
+        open={isCategoryModalOpen}
+        onOpenChange={setIsCategoryModalOpen}
+      />
+      <BrandCategoryModal
+        open={isBrandCategoryModalOpen}
+        onOpenChange={setIsBrandCategoryModalOpen}
+      />
     </>
   );
 }
@@ -422,9 +444,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  previewImageContainer: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
   previewImage: {
     width: '100%',
     height: '100%',
+  },
+  removeImageBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pickerContainer: {
     height: 52,
