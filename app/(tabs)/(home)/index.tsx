@@ -25,18 +25,15 @@ import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SearchBar } from '@/components/ui/searchbar';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverClose } from '@/components/ui/popover';
-import { useBottomSheet } from '@/components/ui/bottom-sheet';
-import { SnapSheet } from '@/components/ui/snap-sheet';
-import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
 import { usersApi } from '@/api/users';
 import { ActivityIndicator, Keyboard, Alert, Linking } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 
 
 export default function HomeScreen() {
@@ -46,9 +43,7 @@ export default function HomeScreen() {
   const queryClient = useQueryClient();
   const listRef = useRef<any>(null);
 
-  const { isVisible: isAddClientOpen, open: openAddClient, close: closeAddClient } = useBottomSheet();
-  const [newClientName, setNewClientName] = useState('');
-  const [newClientPhone, setNewClientPhone] = useState('');
+
 
   const [clientSortBy, setClientSortBy] = useState<'createdAt' | 'clientTransAmount' | 'alphabetic'>('alphabetic');
   const [clientOrder, setClientOrder] = useState<'asc' | 'desc'>('asc');
@@ -135,32 +130,50 @@ export default function HomeScreen() {
     }
   };
 
-  const addClientMutation = useMutation({
-    mutationFn: clientsApi.create,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      setNewClientName('');
-      setNewClientPhone('');
-      closeAddClient();
-      Keyboard.dismiss();
-    }
-  });
+
 
   const downloadExcelMutation = useMutation({
     mutationFn: async () => {
+      let response;
       if (selectedIndex === 0) {
-        return clientsApi.exportExcel();
+        response = await clientsApi.exportExcel();
       } else if (selectedIndex === 1) {
-        return suppliersApi.exportExcel();
+        response = await suppliersApi.exportExcel();
+      } else {
+        throw new Error(t('home.exportNotSupported'));
       }
-      throw new Error(t('home.exportNotSupported'));
+
+      if (!response?.url) throw new Error(t('common.exportError'));
+
+      const filename = response.url.split('/').pop() || 'export.xlsx';
+      const fileUri = `${FileSystem.cacheDirectory}${filename}`;
+
+      const downloadResumable = FileSystem.createDownloadResumable(
+        response.url,
+        fileUri,
+        {}
+      );
+
+      const downloadResult = await downloadResumable.downloadAsync();
+      if (!downloadResult) throw new Error(t('common.exportError'));
+
+      return downloadResult.uri;
     },
-    onSuccess: (data) => {
-      if (data?.url) {
-        Linking.openURL(data.url);
+    onSuccess: async (uri) => {
+      const isSharingAvailable = await Sharing.isAvailableAsync();
+      if (isSharingAvailable) {
+        await Sharing.shareAsync(uri, {
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          dialogTitle: t('home.exportTitle') || 'Export Data',
+          UTI: 'com.microsoft.excel.xlsx'
+        });
+      } else {
+        // Fallback for web or platforms where sharing is not available
+        Linking.openURL(uri);
       }
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error('Export error:', error);
       Alert.alert(t('common.error'), t('common.exportError'));
     }
   });
@@ -169,40 +182,9 @@ export default function HomeScreen() {
     downloadExcelMutation.mutate();
   };
 
-  const handleAddClient = () => {
-    if (!newClientName) return;
-    addClientMutation.mutate({
-      fullName: newClientName,
-      phone: newClientPhone ? `+998${newClientPhone.replace(/\s/g, '')}` : undefined
-    });
-  };
 
-  const handlePickContact = async () => {
-    try {
-      const { status } = await Contacts.requestPermissionsAsync();
-      if (status === 'granted') {
-        const contact = await Contacts.presentContactPickerAsync();
-        if (contact) {
-          if (contact.name) {
-            setNewClientName(contact.name);
-          }
-          if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
-            let phone = contact.phoneNumbers[0].number || '';
-            let digits = phone.replace(/\D/g, '');
-            if (digits.length >= 9) {
-              setNewClientPhone(digits.slice(-9));
-            } else {
-              setNewClientPhone(digits);
-            }
-          }
-        }
-      } else {
-        Alert.alert(t('common.error'), t('home.contactPermissionError'));
-      }
-    } catch (error) {
-      console.log('Error picking contact:', error);
-    }
-  };
+
+
 
   const activeData = getActiveData();
   const isLoading = isLoadingClients || isLoadingSuppliers || isLoadingUsers;
@@ -471,75 +453,13 @@ export default function HomeScreen() {
             )}
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={openAddClient} style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}>
+        <TouchableOpacity onPress={() => router.push('/clients/create')} style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}>
           <UserPlus size={20} color={primaryForeground} />
         </TouchableOpacity>
       </View>
 
       {/* ── Add Client Bottom Sheet ───────────────────────────── */}
-      <SnapSheet
-        isVisible={isAddClientOpen}
-        onClose={closeAddClient}
-        title={t('home.addClient')}
-        snapHeight={0.45}
-      >
-        <View style={{ gap: 20 }}>
-          <View>
-            <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
-              {t('home.clientName')} <Text style={{ color: red }}>*</Text>
-            </Text>
-            <Input
-              placeholder={t('home.placeholders.clientName')}
-              value={newClientName}
-              onChangeText={setNewClientName}
-              variant="outline"
-            />
-          </View>
 
-          <View>
-            <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
-              {t('home.clientPhone')} <Text style={{ color: red }}>*</Text>
-            </Text>
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: card,
-              borderRadius: 12,
-              borderWidth: 1,
-              borderColor: border,
-              height: 52
-            }}>
-              <View style={{ paddingHorizontal: 16, borderRightWidth: 1, borderColor: border, height: '100%', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 16, color: text }}>+998</Text>
-              </View>
-              <Input
-                placeholder="00 000 00 00"
-                value={newClientPhone}
-                onChangeText={setNewClientPhone}
-                containerStyle={{ flex: 1, borderWidth: 0, marginVertical: 0, backgroundColor: 'transparent' }}
-                inputStyle={{ backgroundColor: 'transparent', height: 50, borderBottomWidth: 0 }}
-                keyboardType="phone-pad"
-                maxLength={9}
-                rightComponent={
-                  <TouchableOpacity onPress={handlePickContact} style={{ paddingRight: 12 }} hitSlop={10}>
-                    <User size={20} color={primary} />
-                  </TouchableOpacity>
-                }
-              />
-            </View>
-          </View>
-
-          <Button
-            onPress={handleAddClient}
-            disabled={!newClientName || addClientMutation.isPending}
-            loading={addClientMutation.isPending}
-            style={{ marginTop: 12 }}
-          >
-            {t('home.addClient')}
-          </Button>
-        </View>
-        <AvoidKeyboard offset={20} />
-      </SnapSheet>
 
     </View>
   );

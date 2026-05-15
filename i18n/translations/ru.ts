@@ -69,6 +69,8 @@ export default {
       desc: "По убыванию"
     },
     addClient: "Добавить клиента",
+    fillDetails: "Заполните данные клиента ниже",
+    exportTitle: "Экспорт данных",
     clientName: "Имя",
     clientPhone: "Телефон",
     defaultTenantName: "Мой бизнес",

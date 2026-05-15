@@ -110,7 +110,6 @@ export default function EditProductScreen() {
     enabled: !!id,
   });
 
-  console.log(product)
 
   useEffect(() => {
     if (product) {

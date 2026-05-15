@@ -16,12 +16,12 @@ export default function TabsLayout() {
     <NativeTabs
       minimizeBehavior='onScrollDown'
       labelStyle={{
-        default: { color: primary },
-        selected: { color: foreground },
+        default: { color: foreground },
+        selected: { color: primary },
       }}
       iconColor={{
-        default: primary,
-        selected: foreground,
+        default: foreground,
+        selected: primary,
       }}
       badgeBackgroundColor={red}
       labelVisibilityMode='labeled'

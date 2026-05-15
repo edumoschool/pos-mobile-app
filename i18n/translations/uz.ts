@@ -69,6 +69,8 @@ export default {
       desc: "Kamayuvchi"
     },
     addClient: "Mijoz qo'shish",
+    fillDetails: "Mijoz ma'lumotlarini quyida to'ldiring",
+    exportTitle: "Ma'lumotlarni eksport qilish",
     clientName: "Ism",
     clientPhone: "Telefon",
     defaultTenantName: "Mening biznesim",

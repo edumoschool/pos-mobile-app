@@ -69,6 +69,8 @@ export default {
       desc: "Descending"
     },
     addClient: "Add Client",
+    fillDetails: "Fill in the client details below",
+    exportTitle: "Export Data",
     clientName: "Name",
     clientPhone: "Phone",
     defaultTenantName: "My Business",
