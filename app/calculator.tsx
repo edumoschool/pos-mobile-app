@@ -7,7 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { useColor } from '@/hooks/useColor';
 import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
-import { Delete, Plus, Minus, X, Divide, MoreVertical } from 'lucide-react-native';
+import { Delete, Plus, Minus, X, Divide } from 'lucide-react-native';
 
 type Operator = '+' | '-' | '×' | '÷' | null;
 
