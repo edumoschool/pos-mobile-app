@@ -43,7 +43,15 @@ export default {
     fillRequiredFields: "Iltimos, majburiy maydonlarni to'ldiring",
     exportError: "Eksport qilishda xatolik yuz berdi",
     permissionsDenied: "Ruxsat berilmagan",
-    calculator: "Kalkulator"
+    calculator: "Kalkulator",
+    edit: "Tahrirlash",
+    paymentMethod: "To'lov turi",
+    paymentMethods: {
+      cash: "Naqd",
+      card: "Karta",
+      transfer: "Bank o'tkazmasi",
+      other: "Boshqa"
+    }
   },
   home: {
     segments: {
@@ -77,8 +85,13 @@ export default {
     exportNotSupported: "Ushbu bo'lim uchun eksport mavjud emas",
     contactPermissionError: "Kontaktlarga ruxsat berilmagan",
     placeholders: {
-      clientName: "Mijoz ismini kiriting"
-    }
+      clientName: "Mijoz ismini kiriting",
+      supplierName: "Ta'minotchi ismini kiriting"
+    },
+    addSupplier: "Ta'minotchi qo'shish",
+    fillDetailsSupplier: "Ta'minotchi ma'lumotlarini quyida to'ldiring",
+    supplierName: "Ta'minotchi nomi",
+    supplierPhone: "Ta'minotchi telefoni"
   },
   clientDetail: {
     title: "Mijoz ma'lumotlari",
@@ -93,7 +106,47 @@ export default {
     paymentReceived: "To'lov qabul qilindi",
     debtIssued: "Qarz berildi",
     call: "Qo'ng'iroq qilish",
-    noPhone: "Telefon raqami yo'q"
+    noPhone: "Telefon raqami yo'q",
+    idBadge: "ID",
+    balanceUsdLabel: "Balans (USD)",
+    balanceUzsLabel: "Balans (UZS)",
+    noAddress: "Manzil kiritilmagan",
+    giveLoan: "Qarz berish",
+    makePayment: "To'lov qilish",
+    recentTransactions: "Oxirgi tranzaksiyalar",
+    loanDisbursed: "Qarz berildi",
+    loanTitle: "Qarz",
+    paymentForLoan: "Qarz uchun to'lov",
+    joined: "Qo'shilgan",
+    noNotes: "Ushbu mijoz uchun eslatmalar yo'q.",
+    amount: "Summa",
+    currency: "Valyuta",
+    description: "Tavsif",
+    optionalNotes: "Ixtiyoriy eslatmalar...",
+    saveTransaction: "Tranzaksiyani saqlash",
+    deleteConfirmation: "Haqiqatan ham bu mijozni o'chirib tashlamoqchimisiz?",
+    transactionDetails: "Tranzaksiya tafsilotlari",
+    deleteTxConfirmation: "Haqiqatan ham bu tranzaksiyani o'chirib tashlamoqchimisiz?",
+    totalAmount: "Umumiy balans"
+  },
+  supplierDetail: {
+    title: "Ta'minotchi ma'lumotlari",
+    balanceUzs: "Umumiy qarz (UZS)",
+    balanceUsd: "USD Balans",
+    history: "Tranzaksiyalar tarixi",
+    noHistory: "Tranzaksiyalar mavjud emas",
+    paySupplier: "To'lov qilish",
+    receiveRefund: "Qaytarib olish",
+    address: "Manzil",
+    notes: "Eslatma",
+    paymentMade: "To'lov qilindi",
+    refundReceived: "Pul qaytarildi",
+    call: "Qo'ng'iroq qilish",
+    noPhone: "Telefon raqami yo'q",
+    edit: "Tahrirlash",
+    placeholders: {
+        name: "Ta'minotchi nomini kiriting"
+    }
   },
   inventory: {
     title: "Inventarizatsiya",

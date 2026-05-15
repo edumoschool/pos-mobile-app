@@ -8,18 +8,18 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { clientsApi } from '@/api/partners';
+import { suppliersApi } from '@/api/partners';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
-import { User, Phone, UserPlus } from 'lucide-react-native';
+import { User, Phone, UserPlus, Truck } from 'lucide-react-native';
 
-export default function CreateClientScreen() {
+export default function CreateSupplierScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
-  const [newClientName, setNewClientName] = useState('');
-  const [newClientPhone, setNewClientPhone] = useState('');
+  const [newSupplierName, setNewSupplierName] = useState('');
+  const [newSupplierPhone, setNewSupplierPhone] = useState('');
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -30,22 +30,22 @@ export default function CreateClientScreen() {
   const primaryForeground = useColor('primaryForeground');
   const muted = useColor('textMuted');
 
-  const addClientMutation = useMutation({
-    mutationFn: clientsApi.create,
+  const addSupplierMutation = useMutation({
+    mutationFn: suppliersApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      router.navigate({ pathname: '/(tabs)/(home)', params: { tab: '0' } });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      router.navigate({ pathname: '/(tabs)/(home)', params: { tab: '1' } });
     },
     onError: (error: any) => {
       Alert.alert(t('common.error'), error?.message || t('common.somethingWentWrong'));
     }
   });
 
-  const handleAddClient = () => {
-    if (!newClientName) return;
-    addClientMutation.mutate({
-      fullName: newClientName,
-      phone: newClientPhone ? `+998${newClientPhone.replace(/\s/g, '')}` : undefined
+  const handleAddSupplier = () => {
+    if (!newSupplierName) return;
+    addSupplierMutation.mutate({
+      name: newSupplierName,
+      phone: newSupplierPhone ? `+998${newSupplierPhone.replace(/\s/g, '')}` : undefined
     });
   };
 
@@ -56,15 +56,15 @@ export default function CreateClientScreen() {
         const contact = await Contacts.presentContactPickerAsync();
         if (contact) {
           if (contact.name) {
-            setNewClientName(contact.name);
+            setNewSupplierName(contact.name);
           }
           if (contact.phoneNumbers && contact.phoneNumbers.length > 0) {
             let phone = contact.phoneNumbers[0].number || '';
             let digits = phone.replace(/\D/g, '');
             if (digits.length >= 9) {
-              setNewClientPhone(digits.slice(-9));
+              setNewSupplierPhone(digits.slice(-9));
             } else {
-              setNewClientPhone(digits);
+              setNewSupplierPhone(digits);
             }
           }
         }
@@ -81,8 +81,7 @@ export default function CreateClientScreen() {
       <Stack.Screen
         options={{
           headerShown: true,
-          headerTitle: t('home.addClient'),
-
+          headerTitle: t('home.addSupplier'),
           headerStyle: { backgroundColor: bg },
           headerShadowVisible: false,
         }}
@@ -99,21 +98,21 @@ export default function CreateClientScreen() {
                 justifyContent: 'center',
                 marginBottom: 12
             }}>
-                <UserPlus size={40} color={primary} />
+                <Truck size={40} color={primary} />
             </View>
-            <Text style={{ fontSize: 24, fontWeight: '800', color: text }}>{t('home.addClient')}</Text>
-            <Text style={{ fontSize: 14, color: muted, marginTop: 4 }}>{t('home.fillDetails')}</Text>
+            <Text style={{ fontSize: 24, fontWeight: '800', color: text }}>{t('home.addSupplier')}</Text>
+            <Text style={{ fontSize: 14, color: muted, marginTop: 4 }}>{t('home.fillDetailsSupplier')}</Text>
         </View>
 
         <View style={{ gap: 24 }}>
           <View>
             <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
-              {t('home.clientName')} <Text style={{ color: red }}>*</Text>
+              {t('home.supplierName')} <Text style={{ color: red }}>*</Text>
             </Text>
             <Input
-              placeholder={t('home.placeholders.clientName')}
-              value={newClientName}
-              onChangeText={setNewClientName}
+              placeholder={t('home.placeholders.supplierName')}
+              value={newSupplierName}
+              onChangeText={setNewSupplierName}
               variant="outline"
               containerStyle={{ height: 56, borderRadius: 16 }}
               icon={User}
@@ -122,7 +121,7 @@ export default function CreateClientScreen() {
 
           <View>
             <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 8, color: text }}>
-              {t('home.clientPhone')} <Text style={{ color: red }}>*</Text>
+              {t('home.supplierPhone')}
             </Text>
             <View style={{
               flexDirection: 'row',
@@ -138,8 +137,8 @@ export default function CreateClientScreen() {
               </View>
               <Input
                 placeholder="00 000 00 00"
-                value={newClientPhone}
-                onChangeText={setNewClientPhone}
+                value={newSupplierPhone}
+                onChangeText={setNewSupplierPhone}
                 containerStyle={{ flex: 1, borderWidth: 0, marginVertical: 0, backgroundColor: 'transparent' }}
                 inputStyle={{ backgroundColor: 'transparent', height: 54, borderBottomWidth: 0, fontSize: 16 }}
                 keyboardType="phone-pad"
@@ -154,12 +153,12 @@ export default function CreateClientScreen() {
           </View>
 
           <Button
-            onPress={handleAddClient}
-            disabled={!newClientName || addClientMutation.isPending}
-            loading={addClientMutation.isPending}
+            onPress={handleAddSupplier}
+            disabled={!newSupplierName || addSupplierMutation.isPending}
+            loading={addSupplierMutation.isPending}
             style={{ marginTop: 12, height: 56, borderRadius: 16 }}
           >
-            <Text style={{ color: primaryForeground, fontSize: 16, fontWeight: '700' }}>{t('home.addClient')}</Text>
+            <Text style={{ color: primaryForeground, fontSize: 16, fontWeight: '700' }}>{t('home.addSupplier')}</Text>
           </Button>
         </View>
       </ScrollView>

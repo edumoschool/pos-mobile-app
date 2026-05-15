@@ -43,7 +43,15 @@ export default {
     fillRequiredFields: "Please fill in required fields",
     exportError: "Error during export",
     permissionsDenied: "Permission denied",
-    calculator: "Calculator"
+    calculator: "Calculator",
+    edit: "Edit",
+    paymentMethod: "Payment Method",
+    paymentMethods: {
+      cash: "Cash",
+      card: "Card",
+      transfer: "Bank Transfer",
+      other: "Other"
+    }
   },
   home: {
     segments: {
@@ -77,8 +85,13 @@ export default {
     exportNotSupported: "Export not supported for this tab",
     contactPermissionError: "Contacts permission not granted",
     placeholders: {
-      clientName: "Enter client name"
-    }
+      clientName: "Enter client name",
+      supplierName: "Enter supplier name"
+    },
+    addSupplier: "Add Supplier",
+    fillDetailsSupplier: "Fill in the supplier details below",
+    supplierName: "Supplier Name",
+    supplierPhone: "Supplier Phone"
   },
   clientDetail: {
     title: "Client Details",
@@ -93,7 +106,47 @@ export default {
     paymentReceived: "Payment Received",
     debtIssued: "Debt Issued",
     call: "Call",
-    noPhone: "No phone number"
+    noPhone: "No phone number",
+    idBadge: "ID",
+    balanceUsdLabel: "Balance (USD)",
+    balanceUzsLabel: "Balance (UZS)",
+    noAddress: "Address not provided",
+    giveLoan: "Give Loan",
+    makePayment: "Make Payment",
+    recentTransactions: "Recent Transactions",
+    loanDisbursed: "Loan Disbursed",
+    loanTitle: "Loan",
+    paymentForLoan: "Payment for loan",
+    joined: "Joined",
+    noNotes: "No notes available for this client.",
+    amount: "Amount",
+    currency: "Currency",
+    description: "Description",
+    optionalNotes: "Optional notes...",
+    saveTransaction: "Save Transaction",
+    deleteConfirmation: "Are you sure you want to delete this client?",
+    transactionDetails: "Transaction Details",
+    deleteTxConfirmation: "Are you sure you want to delete this transaction?",
+    totalAmount: "Total Balance"
+  },
+  supplierDetail: {
+    title: "Supplier Details",
+    balanceUzs: "Total Debt (UZS)",
+    balanceUsd: "USD Balance",
+    history: "Transaction History",
+    noHistory: "No transactions found",
+    paySupplier: "Pay Supplier",
+    receiveRefund: "Receive Refund",
+    address: "Address",
+    notes: "Notes",
+    paymentMade: "Payment Made",
+    refundReceived: "Refund Received",
+    call: "Call",
+    noPhone: "No phone number",
+    edit: "Edit Supplier",
+    placeholders: {
+        name: "Enter supplier name"
+    }
   },
   inventory: {
     title: "Inventory",

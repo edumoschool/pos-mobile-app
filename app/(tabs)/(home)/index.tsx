@@ -22,18 +22,19 @@ import {
 } from 'lucide-react-native';
 import SegmentedControl from '@expo/ui/community/segmented-control';
 import { FlashList } from '@shopify/flash-list';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SearchBar } from '@/components/ui/searchbar';
 import { Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverClose } from '@/components/ui/popover';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
 import { usersApi } from '@/api/users';
-import { ActivityIndicator, Keyboard, Alert, Linking } from 'react-native';
+import { ActivityIndicator, Keyboard, Alert, Linking, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
+import { formatAmount } from '@/lib/utils';
 
 
 export default function HomeScreen() {
@@ -59,8 +60,19 @@ export default function HomeScreen() {
   const green = useColor('green');
 
   const segments = [t('home.segments.clients'), t('home.segments.suppliers'), t('home.segments.employees')];
+  const { tab } = useLocalSearchParams<{ tab: string }>();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (tab === '1') {
+      setSelectedIndex(1);
+    } else if (tab === '0') {
+      setSelectedIndex(0);
+    } else if (tab === '2') {
+      setSelectedIndex(2);
+    }
+  }, [tab]);
 
   const tenantName = user?.tenant?.name || t('home.defaultTenantName');
 
@@ -69,7 +81,9 @@ export default function HomeScreen() {
     isLoading: isLoadingClients,
     fetchNextPage: fetchNextClients,
     hasNextPage: hasNextClients,
-    isFetchingNextPage: isFetchingNextClients
+    isFetchingNextPage: isFetchingNextClients,
+    refetch: refetchClients,
+    isRefetching: isRefetchingClients
   } = useInfiniteQuery({
     queryKey: ['clients', searchQuery, clientSortBy, clientOrder],
     queryFn: ({ pageParam = 1 }) => clientsApi.getAll({
@@ -82,13 +96,14 @@ export default function HomeScreen() {
     getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
   });
-
   const {
     data: suppliersData,
     isLoading: isLoadingSuppliers,
     fetchNextPage: fetchNextSuppliers,
     hasNextPage: hasNextSuppliers,
-    isFetchingNextPage: isFetchingNextSuppliers
+    isFetchingNextPage: isFetchingNextSuppliers,
+    refetch: refetchSuppliers,
+    isRefetching: isRefetchingSuppliers
   } = useInfiniteQuery({
     queryKey: ['suppliers', searchQuery],
     queryFn: ({ pageParam = 1 }) => suppliersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
@@ -101,7 +116,9 @@ export default function HomeScreen() {
     isLoading: isLoadingUsers,
     fetchNextPage: fetchNextUsers,
     hasNextPage: hasNextUsers,
-    isFetchingNextPage: isFetchingNextUsers
+    isFetchingNextPage: isFetchingNextUsers,
+    refetch: refetchUsers,
+    isRefetching: isRefetchingUsers
   } = useInfiniteQuery({
     queryKey: ['users', searchQuery],
     queryFn: ({ pageParam = 1 }) => usersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
@@ -113,6 +130,17 @@ export default function HomeScreen() {
   const suppliers = suppliersData?.pages.flatMap(page => page.data) || [];
   const usersData = usersQueryData?.pages.flatMap(page => page.data) || [];
 
+  const isRefreshing = 
+    selectedIndex === 0 ? isRefetchingClients :
+    selectedIndex === 1 ? isRefetchingSuppliers :
+    isRefetchingUsers;
+
+  const handleRefresh = async () => {
+    if (selectedIndex === 0) await refetchClients();
+    else if (selectedIndex === 1) await refetchSuppliers();
+    else if (selectedIndex === 2) await refetchUsers();
+  };
+
   useEffect(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [clientSortBy, clientOrder, selectedIndex, searchQuery]);
@@ -120,11 +148,35 @@ export default function HomeScreen() {
   const getActiveData = () => {
     switch (selectedIndex) {
       case 0:
-        return clients.map(c => ({ id: c.id, name: c.fullName, phone: c.phone || t('products.na'), subtext: c.notes || t('home.roles.client'), balance: '0 UZS', avatarUrl: (c as any).avatarUrl }));
+        return clients.map(c => ({ 
+          id: c.id, 
+          name: c.fullName, 
+          phone: c.phone || t('products.na'), 
+          subtext: c.notes || t('home.roles.client'), 
+          balance: `${formatAmount(c.totalAmount || 0)} UZS`,
+          isNegative: (c.totalAmount || 0) < 0,
+          avatarUrl: (c as any).avatarUrl 
+        }));
       case 1:
-        return suppliers.map(s => ({ id: s.id, name: s.name, phone: s.phone || t('products.na'), subtext: s.notes || t('home.roles.supplier'), balance: '0 UZS', avatarUrl: (s as any).avatarUrl }));
+        return suppliers.map(s => ({ 
+          id: s.id, 
+          name: s.name, 
+          phone: s.phone || t('products.na'), 
+          subtext: s.notes || t('home.roles.supplier'), 
+          balance: `${formatAmount(s.totalAmount || 0)} UZS`,
+          isNegative: (s.totalAmount || 0) < 0,
+          avatarUrl: (s as any).avatarUrl 
+        }));
       case 2:
-        return usersData.map(u => ({ id: u.id, name: u.fullName, phone: u.phone, subtext: u.role, balance: '0 UZS', avatarUrl: (u as any).avatarUrl }));
+        return usersData.map(u => ({ 
+          id: u.id, 
+          name: u.fullName, 
+          phone: u.phone, 
+          subtext: u.role, 
+          balance: '0 UZS', 
+          isNegative: false,
+          avatarUrl: (u as any).avatarUrl 
+        }));
       default:
         return [];
     }
@@ -363,6 +415,14 @@ export default function HomeScreen() {
               if (selectedIndex === 2 && hasNextUsers) fetchNextUsers();
             }}
             onEndReachedThreshold={0.5}
+            refreshControl={
+              <RefreshControl 
+                refreshing={isRefreshing} 
+                onRefresh={handleRefresh} 
+                tintColor={primary}
+                colors={[primary]}
+              />
+            }
             ListFooterComponent={() => {
               const isFetchingNext = (selectedIndex === 0 && isFetchingNextClients) ||
                 (selectedIndex === 1 && isFetchingNextSuppliers) ||
@@ -375,6 +435,8 @@ export default function HomeScreen() {
                 onPress={() => {
                   if (selectedIndex === 0) {
                     router.push(`/clients/${item.id}` as any);
+                  } else if (selectedIndex === 1) {
+                    router.push(`/suppliers/${item.id}` as any);
                   }
                 }}
                 style={{
@@ -407,8 +469,8 @@ export default function HomeScreen() {
                 <View style={{ alignItems: 'flex-end' }}>
                   <Text style={{
                     fontSize: 14,
-                    fontWeight: '600',
-                    color: item.balance.startsWith('-') ? red : green,
+                    fontWeight: '800',
+                    color: item.isNegative ? red : green,
                     marginBottom: 2
                   }}>
                     {item.balance}
@@ -453,9 +515,14 @@ export default function HomeScreen() {
             )}
           </TouchableOpacity>
         )}
-        <TouchableOpacity onPress={() => router.push('/clients/create')} style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}>
-          <UserPlus size={20} color={primaryForeground} />
-        </TouchableOpacity>
+        {selectedIndex !== 2 && (
+          <TouchableOpacity 
+            onPress={() => router.push(selectedIndex === 0 ? '/clients/create' : '/suppliers/create')} 
+            style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}
+          >
+            <UserPlus size={20} color={primaryForeground} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* ── Add Client Bottom Sheet ───────────────────────────── */}

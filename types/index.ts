@@ -376,6 +376,9 @@ export interface Client {
   phone: string | null;
   address: string | null;
   notes: string | null;
+  totalAmountUzs?: number;
+  totalAmountUsd?: number;
+  totalAmount?: number;
   createdAt: string;
 }
 
@@ -403,6 +406,9 @@ export interface Supplier {
   address: string | null;
   notes: string | null;
   isActive: boolean;
+  totalAmountUzs?: number;
+  totalAmountUsd?: number;
+  totalAmount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -677,22 +683,25 @@ export interface PartyBalanceSummary {
   fullName?: string;
   name?: string;
   phone: string | null;
-  balanceUzs: number;
-  balanceUsd: number;
+  totalAmountUzs: number;
+  totalAmountUsd: number;
+  totalAmount: number;
   transactionCount: number;
 }
 
 export interface ClientBalanceDetail {
   client: Client;
-  balanceUzs: number;
-  balanceUsd: number;
+  totalAmountUzs: number;
+  totalAmountUsd: number;
+  totalAmount: number;
   transactions: ClientTransaction[];
 }
 
 export interface SupplierBalanceDetail {
   supplier: Supplier;
-  balanceUzs: number;
-  balanceUsd: number;
+  totalAmountUzs: number;
+  totalAmountUsd: number;
+  totalAmount: number;
   transactions: SupplierTransaction[];
 }
 

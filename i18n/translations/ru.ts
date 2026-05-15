@@ -43,7 +43,15 @@ export default {
     fillRequiredFields: "Пожалуйста, заполните обязательные поля",
     exportError: "Ошибка при экспорте",
     permissionsDenied: "Доступ запрещен",
-    calculator: "Калькулятор"
+    calculator: "Калькулятор",
+    edit: "Изменить",
+    paymentMethod: "Способ оплаты",
+    paymentMethods: {
+      cash: "Наличные",
+      card: "Карта",
+      transfer: "Банковский перевод",
+      other: "Другое"
+    }
   },
   home: {
     segments: {
@@ -77,8 +85,13 @@ export default {
     exportNotSupported: "Экспорт не поддерживается для этой вкладки",
     contactPermissionError: "Нет доступа к контактам",
     placeholders: {
-      clientName: "Введите имя клиента"
-    }
+      clientName: "Введите имя клиента",
+      supplierName: "Введите имя поставщика"
+    },
+    addSupplier: "Добавить поставщика",
+    fillDetailsSupplier: "Заполните данные поставщика ниже",
+    supplierName: "Имя поставщика",
+    supplierPhone: "Телефон поставщика"
   },
   clientDetail: {
     title: "Данные клиента",
@@ -93,7 +106,47 @@ export default {
     paymentReceived: "Оплата принята",
     debtIssued: "Долг выдан",
     call: "Позвонить",
-    noPhone: "Нет номера телефона"
+    noPhone: "Нет номера телефона",
+    idBadge: "ID",
+    balanceUsdLabel: "Баланс (USD)",
+    balanceUzsLabel: "Баланс (UZS)",
+    noAddress: "Адрес не указан",
+    giveLoan: "Дать в долг",
+    makePayment: "Произвести оплату",
+    recentTransactions: "Последние транзакции",
+    loanDisbursed: "Долг выдан",
+    loanTitle: "Долг",
+    paymentForLoan: "Оплата по долгу",
+    joined: "Присоединился",
+    noNotes: "Заметки для этого клиента отсутствуют.",
+    amount: "Сумма",
+    currency: "Валюта",
+    description: "Описание",
+    optionalNotes: "Дополнительные примечания...",
+    saveTransaction: "Сохранить транзакцию",
+    deleteConfirmation: "Вы уверены, что хотите удалить этого клиента?",
+    transactionDetails: "Детали транзакции",
+    deleteTxConfirmation: "Вы уверены, что хотите удалить эту транзакцию?",
+    totalAmount: "Общий баланс"
+  },
+  supplierDetail: {
+    title: "Данные поставщика",
+    balanceUzs: "Общий долг (UZS)",
+    balanceUsd: "Баланс USD",
+    history: "История транзакций",
+    noHistory: "Транзакции не найдены",
+    paySupplier: "Оплатить",
+    receiveRefund: "Возврат средств",
+    address: "Адрес",
+    notes: "Заметка",
+    paymentMade: "Оплата произведена",
+    refundReceived: "Возврат получен",
+    call: "Позвонить",
+    noPhone: "Нет номера телефона",
+    edit: "Редактировать",
+    placeholders: {
+        name: "Введите имя поставщика"
+    }
   },
   inventory: {
     title: "Инвентаризация",

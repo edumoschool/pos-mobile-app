@@ -20,10 +20,10 @@ import { FlashList } from '@shopify/flash-list';
 
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
-import { clientTransactionsApi } from '@/api/party-transactions';
-import { clientsApi } from '@/api/partners';
+import { supplierTransactionsApi } from '@/api/party-transactions';
+import { suppliersApi } from '@/api/partners';
 import { getApiErrorMessage } from '@/api/client';
-import { ClientTransaction, PaymentMethod } from '@/types';
+import { SupplierTransaction, PaymentMethod } from '@/types';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
@@ -33,7 +33,7 @@ import { formatAmount } from '@/lib/utils';
 import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/toast';
 
-export default function ClientDetailScreen() {
+export default function SupplierDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
@@ -52,26 +52,26 @@ export default function ClientDetailScreen() {
   const deleteTxDialog = useAlertDialog();
   const { success: showSuccess, error: showError } = useToast();
   const [isSheetVisible, setIsSheetVisible] = React.useState(false);
-  const [transactionType, setTransactionType] = React.useState<'income' | 'outcome'>('income');
+  const [transactionType, setTransactionType] = React.useState<'income' | 'outcome'>('outcome');
   const [amount, setAmount] = React.useState('');
   const [currency, setCurrency] = React.useState<'USD' | 'UZS'>('USD');
   const [description, setDescription] = React.useState('');
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('cash');
 
   const [isDetailSheetVisible, setIsDetailSheetVisible] = React.useState(false);
-  const [selectedTransaction, setSelectedTransaction] = React.useState<ClientTransaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = React.useState<SupplierTransaction | null>(null);
 
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
-    queryKey: ['client-balance', id],
-    queryFn: () => clientTransactionsApi.getBalance(id!),
+    queryKey: ['supplier-balance', id],
+    queryFn: () => supplierTransactionsApi.getBalance(id!),
     enabled: !!id,
   });
 
   const createMutation = useMutation({
-    mutationFn: (payload: any) => clientTransactionsApi.create(payload),
+    mutationFn: (payload: any) => supplierTransactionsApi.create(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-balance', id] });
-      showSuccess(t('common.success'), t('clientDetail.paymentReceived'));
+      queryClient.invalidateQueries({ queryKey: ['supplier-balance', id] });
+      showSuccess(t('common.success'), t('supplierDetail.paymentMade'));
       setIsSheetVisible(false);
       setAmount('');
       setDescription('');
@@ -82,9 +82,9 @@ export default function ClientDetailScreen() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: () => clientsApi.delete(id!),
+    mutationFn: () => suppliersApi.delete(id!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       showSuccess(t('common.success'), t('common.delete') + ' ' + t('common.success').toLowerCase());
       router.dismissAll();
       router.replace('/(tabs)/(home)');
@@ -95,9 +95,9 @@ export default function ClientDetailScreen() {
   });
 
   const deleteTxMutation = useMutation({
-    mutationFn: (txId: string) => clientTransactionsApi.delete(txId),
+    mutationFn: (txId: string) => supplierTransactionsApi.delete(txId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-balance', id] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-balance', id] });
       showSuccess(t('common.success'), t('common.delete') + ' ' + t('common.success').toLowerCase());
       setIsDetailSheetVisible(false);
       setSelectedTransaction(null);
@@ -112,7 +112,7 @@ export default function ClientDetailScreen() {
     if (!rawAmount || isNaN(Number(rawAmount))) return;
     
     createMutation.mutate({
-      clientId: id!,
+      supplierId: id!,
       type: transactionType,
       amount: Number(rawAmount),
       currency: currency,
@@ -121,7 +121,7 @@ export default function ClientDetailScreen() {
     });
   };
 
-  const openTransactionDetail = (tx: ClientTransaction) => {
+  const openTransactionDetail = (tx: SupplierTransaction) => {
     setSelectedTransaction(tx);
     setIsDetailSheetVisible(true);
   };
@@ -154,7 +154,7 @@ export default function ClientDetailScreen() {
     );
   }
 
-  const { client, totalAmountUzs, totalAmountUsd, totalAmount, transactions } = data;
+  const { supplier, totalAmountUzs, totalAmountUsd, totalAmount, transactions } = data;
 
   const renderHeader = () => (
     <View style={{ paddingBottom: 10 }}>
@@ -165,12 +165,12 @@ export default function ClientDetailScreen() {
             style={{ backgroundColor: border }}
             textStyle={{ color: text, fontSize: 36, fontWeight: '700' }}
           >
-            {client.fullName.substring(0, 2).toUpperCase()}
+            {supplier.name.substring(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
 
         <Text style={{ fontSize: 22, fontWeight: 'bold', color: text, marginTop: 16, textAlign: 'center' }}>
-          {client.fullName}
+          {supplier.name}
         </Text>
 
         <View style={{ 
@@ -185,20 +185,20 @@ export default function ClientDetailScreen() {
         }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ fontSize: 16, color: text, fontWeight: '600' }}>
-              {client.phone || t('clientDetail.noPhone')}
+              {supplier.phone || t('supplierDetail.noPhone')}
             </Text>
           </View>
 
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <TouchableOpacity 
               style={{ width: 40, height: 40, borderRadius: 22, backgroundColor: '#0066ffff', alignItems: 'center', justifyContent: 'center' }}
-              onPress={() => client.phone && require('react-native').Linking.openURL(`tel:${client.phone}`)}
+              onPress={() => supplier.phone && require('react-native').Linking.openURL(`tel:${supplier.phone}`)}
             >
               <Phone size={20} color="#fff" fill="#fff" />
             </TouchableOpacity>
             <TouchableOpacity 
               style={{ width: 40, height: 40, borderRadius: 22, backgroundColor: '#ffa600ff', alignItems: 'center', justifyContent: 'center' }}
-              onPress={() => client.phone && require('react-native').Linking.openURL(`sms:${client.phone}`)}
+              onPress={() => supplier.phone && require('react-native').Linking.openURL(`sms:${supplier.phone}`)}
             >
               <MessageCircle size={20} color="#fff" fill="#fff" />
             </TouchableOpacity>
@@ -244,8 +244,8 @@ export default function ClientDetailScreen() {
         <TouchableOpacity 
           style={{ backgroundColor: card+'60', borderRadius: 6, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: border+'50' }}
           onPress={() => {
-            if (client.address) {
-              const query = encodeURIComponent(client.address);
+            if (supplier.address) {
+              const query = encodeURIComponent(supplier.address);
               const appUrl = `yandexmaps://maps.yandex.ru/?text=${query}`;
               const webUrl = `https://yandex.com/maps/?text=${query}`;
               require('react-native').Linking.openURL(appUrl).catch(() => {
@@ -258,9 +258,9 @@ export default function ClientDetailScreen() {
             <MapPin size={22} color={primary} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 15, fontWeight: '700', color: text, marginBottom: 4 }}>{t('clientDetail.address')}</Text>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: text, marginBottom: 4 }}>{t('supplierDetail.address')}</Text>
             <Text style={{ fontSize: 13, color: muted, lineHeight: 18 }} numberOfLines={2}>
-              {client.address || t('clientDetail.noAddress')}
+              {supplier.address || t('clientDetail.noAddress')}
             </Text>
           </View>
           <ChevronRight size={20} color={muted} />
@@ -279,14 +279,14 @@ export default function ClientDetailScreen() {
     <View style={[styles.container, { backgroundColor: bg, paddingBottom: insets.bottom }]}>
       <Stack.Screen 
         options={{
-          headerTitle: t('clientDetail.title'),
+          headerTitle: t('supplierDetail.title'),
           headerShown: true,
           headerRight: () => (
             <View style={{ flexDirection: 'row', gap: 16, marginRight: 8 }}>
               <TouchableOpacity onPress={deleteDialog.open}>
                 <Trash2 size={22} color={red} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push(`/clients/${id}/edit` as any)}>
+              <TouchableOpacity onPress={() => router.push(`/suppliers/${id}/edit` as any)}>
                 <Edit size={22} color={primary} />
               </TouchableOpacity>
             </View>
@@ -297,8 +297,8 @@ export default function ClientDetailScreen() {
         }}
       />
 
-      <FlashList<ClientTransaction>
-        data={transactions as ClientTransaction[]}
+      <FlashList<SupplierTransaction>
+        data={transactions as SupplierTransaction[]}
         keyExtractor={(item: any) => item.id}
         ListHeaderComponent={renderHeader}
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -310,7 +310,7 @@ export default function ClientDetailScreen() {
             colors={[primary]}
           />
         }
-        renderItem={({ item, index }: { item: ClientTransaction, index: number }) => {
+        renderItem={({ item, index }: { item: SupplierTransaction, index: number }) => {
           const isIncome = item.type === 'income';
           const iconColor = isIncome ? green : red;
           const Icon = isIncome ? ArrowDownLeft : ArrowUpRight;
@@ -342,13 +342,13 @@ export default function ClientDetailScreen() {
                 
                 <View style={{ flex: 1, marginLeft: 12, gap: 0 }}>
                   <Text style={{ fontSize: 10, color: muted, textTransform: 'uppercase', fontWeight: '700' }}>
-                    {isIncome ? t('clientDetail.paymentReceived') : t('clientDetail.loanDisbursed')}
+                    {isIncome ? t('supplierDetail.refundReceived') : t('supplierDetail.paymentMade')}
                   </Text>
                   <Text style={{ fontSize: 16, fontWeight: '900', color: iconColor }}>
                     {isIncome ? '+' : '-'}{formatAmount(item.amount)} {item.currency}
                   </Text>
                   <Text style={{ fontSize: 12, color: text, fontWeight: '600' }} numberOfLines={1}>
-                    {item.description || (isIncome ? t('clientDetail.paymentForLoan') : t('clientDetail.loanTitle'))}
+                    {item.description || (isIncome ? t('supplierDetail.refundReceived') : t('supplierDetail.paymentMade'))}
                   </Text>
                   <Text style={{ fontSize: 10, color: muted }}>
                     {new Date(item.createdAt).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })}
@@ -361,7 +361,7 @@ export default function ClientDetailScreen() {
         ListEmptyComponent={() => (
           <View style={{ paddingHorizontal: 10 }}>
             <View style={{ padding: 40, alignItems: 'center', backgroundColor: card+'60', borderRadius: 6, borderWidth: 1, borderColor: border+'50' }}>
-              <Text style={{ color: muted }}>{t('clientDetail.noHistory')}</Text>
+              <Text style={{ color: muted }}>{t('supplierDetail.noHistory')}</Text>
             </View>
           </View>
         )}
@@ -374,7 +374,7 @@ export default function ClientDetailScreen() {
           onPress={() => openTransactionSheet('outcome')}
         >
           <Minus size={20} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '600' }}>{t('clientDetail.giveLoan')}</Text>
+          <Text style={{ color: '#fff', fontWeight: '600' }}>{t('supplierDetail.paySupplier')}</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -382,7 +382,7 @@ export default function ClientDetailScreen() {
           onPress={() => openTransactionSheet('income')}
         >
           <Plus size={20} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '600' }}>{t('clientDetail.makePayment')}</Text>
+          <Text style={{ color: '#fff', fontWeight: '600' }}>{t('supplierDetail.receiveRefund')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -390,7 +390,7 @@ export default function ClientDetailScreen() {
       <BottomSheet
         isVisible={isSheetVisible}
         onClose={() => setIsSheetVisible(false)}
-        title={transactionType === 'income' ? t('clientDetail.makePayment') : t('clientDetail.giveLoan')}
+        title={transactionType === 'income' ? t('supplierDetail.receiveRefund') : t('supplierDetail.paySupplier')}
         snapPoints={[0.65]}
       >
         <View style={{ gap: 20, paddingTop: 10 }}>
@@ -450,8 +450,8 @@ export default function ClientDetailScreen() {
       <AlertDialog
         isVisible={deleteDialog.isVisible}
         onClose={deleteDialog.close}
-        title={t('common.delete') || 'Delete Client'}
-        description={t('clientDetail.deleteConfirmation') || 'Are you sure you want to delete this client?'}
+        title={t('common.delete') || 'Delete Supplier'}
+        description={t('products.deleteConfirmation') || 'Are you sure you want to delete this supplier?'}
         confirmText={t('common.delete') || 'Delete'}
         cancelText={t('common.cancel') || 'Cancel'}
         onConfirm={deleteMutation.mutate}
@@ -483,7 +483,7 @@ export default function ClientDetailScreen() {
               {selectedTransaction?.type === 'income' ? '+' : '-'}{formatAmount(selectedTransaction?.amount)} {selectedTransaction?.currency}
             </Text>
             <Text style={{ fontSize: 14, color: muted, marginTop: 4 }}>
-              {selectedTransaction?.type === 'income' ? t('clientDetail.paymentReceived') : t('clientDetail.loanDisbursed')}
+              {selectedTransaction?.type === 'income' ? t('supplierDetail.refundReceived') : t('supplierDetail.paymentMade')}
             </Text>
           </View>
 
