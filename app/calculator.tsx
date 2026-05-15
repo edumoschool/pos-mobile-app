@@ -1,13 +1,13 @@
-import React, { useState, useCallback } from 'react';
-import { Pressable, useWindowDimensions } from 'react-native';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Pressable, useWindowDimensions, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { View } from '@/components/ui/view';
 import { Icon } from '@/components/ui/icon';
 import { useColor } from '@/hooks/useColor';
 import { useTranslation } from 'react-i18next';
-import { router, Stack } from 'expo-router';
-import { ArrowLeft, Delete, RotateCcw, Plus, Minus, X, Divide, Equal, Percent } from 'lucide-react-native';
+import { Stack } from 'expo-router';
+import { Delete, Plus, Minus, X, Divide, MoreVertical } from 'lucide-react-native';
 
 type Operator = '+' | '-' | '×' | '÷' | null;
 
@@ -18,29 +18,39 @@ export default function CalculatorScreen() {
   const [waitingForOperand, setWaitingForOperand] = useState(false);
   const [history, setHistory] = useState('');
   const { t } = useTranslation();
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   const primary = useColor('primary');
-  const green = useColor('green');
-  const red = useColor('red');
-  const orange = useColor('orange');
   const cardBg = useColor('card');
   const bgColor = useColor('background');
   const textColor = useColor('foreground');
   const textMuted = useColor('mutedForeground');
-  const borderColor = useColor('border');
 
-  const PADDING = 16;
-  const GAP = 10;
+  const blinkAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const blink = Animated.loop(
+      Animated.sequence([
+        Animated.timing(blinkAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
+        Animated.timing(blinkAnim, { toValue: 1, duration: 500, useNativeDriver: true })
+      ])
+    );
+    blink.start();
+    return () => blink.stop();
+  }, [blinkAnim]);
+
+  const PADDING = 20;
+  const GAP = 12;
   const COLS = 4;
   const btnWidth = (width - PADDING * 2 - GAP * (COLS - 1)) / COLS;
-  const btnHeight = Math.min(btnWidth * 0.72, (height - 340) / 5.5);
+  const btnHeight = btnWidth * 1.05;
 
   const formatDisplay = (val: string) => {
+    if (!val) return '';
     const parts = val.split('.');
     const intPart = parts[0].replace(/^-/, '');
-    const formatted = parseInt(intPart, 10).toLocaleString('en-US');
+    const formatted = intPart ? parseInt(intPart, 10).toLocaleString('en-US') : '';
     const sign = val.startsWith('-') ? '-' : '';
     if (parts.length > 1) return `${sign}${formatted}.${parts[1]}`;
     return `${sign}${formatted}`;
@@ -120,7 +130,6 @@ export default function CalculatorScreen() {
   const handlePercent = useCallback(() => {
     const current = parseFloat(display);
     if (previousValue !== null && operator) {
-      // Calculate percentage of previous value
       const pct = (previousValue * current) / 100;
       setDisplay(pct.toString());
     } else {
@@ -128,51 +137,46 @@ export default function CalculatorScreen() {
     }
   }, [display, previousValue, operator]);
 
-  const handleToggleSign = useCallback(() => {
-    if (display === '0') return;
-    setDisplay((prev) => (prev.startsWith('-') ? prev.slice(1) : '-' + prev));
-  }, [display]);
-
   type ButtonConfig = {
     label: string;
     icon?: any;
     type: 'digit' | 'operator' | 'action' | 'equals';
     value: string;
     color?: string;
-    bg?: string;
   };
 
-  const buttons: ButtonConfig[][] = [
+  const buttonsLayout: ButtonConfig[][] = [
     [
-      { label: 'C', type: 'action', value: 'clear', bg: red + '15', color: red },
-      { label: '±', type: 'action', value: 'sign', bg: borderColor + '40', color: textMuted },
-      { label: '%', icon: Percent, type: 'action', value: 'percent', bg: borderColor + '40', color: textMuted },
-      { label: '÷', icon: Divide, type: 'operator', value: '÷', bg: orange + '15', color: orange },
+      { label: 'C', type: 'action', value: 'clear', color: primary },
+      { label: '÷', icon: Divide, type: 'operator', value: '÷', color: primary },
+      { label: '×', icon: X, type: 'operator', value: '×', color: primary },
+      { label: '⌫', icon: Delete, type: 'action', value: 'backspace', color: primary },
     ],
     [
-      { label: '7', type: 'digit', value: '7', bg: cardBg, color: textColor },
-      { label: '8', type: 'digit', value: '8', bg: cardBg, color: textColor },
-      { label: '9', type: 'digit', value: '9', bg: cardBg, color: textColor },
-      { label: '×', icon: X, type: 'operator', value: '×', bg: orange + '15', color: orange },
+      { label: '7', type: 'digit', value: '7', color: textColor },
+      { label: '8', type: 'digit', value: '8', color: textColor },
+      { label: '9', type: 'digit', value: '9', color: textColor },
+      { label: '-', icon: Minus, type: 'operator', value: '-', color: primary },
     ],
     [
-      { label: '4', type: 'digit', value: '4', bg: cardBg, color: textColor },
-      { label: '5', type: 'digit', value: '5', bg: cardBg, color: textColor },
-      { label: '6', type: 'digit', value: '6', bg: cardBg, color: textColor },
-      { label: '-', icon: Minus, type: 'operator', value: '-', bg: orange + '15', color: orange },
+      { label: '4', type: 'digit', value: '4', color: textColor },
+      { label: '5', type: 'digit', value: '5', color: textColor },
+      { label: '6', type: 'digit', value: '6', color: textColor },
+      { label: '+', icon: Plus, type: 'operator', value: '+', color: primary },
+    ],
+  ];
+
+  const bottomLeftButtons: ButtonConfig[][] = [
+    [
+      { label: '1', type: 'digit', value: '1', color: textColor },
+      { label: '2', type: 'digit', value: '2', color: textColor },
+      { label: '3', type: 'digit', value: '3', color: textColor },
     ],
     [
-      { label: '1', type: 'digit', value: '1', bg: cardBg, color: textColor },
-      { label: '2', type: 'digit', value: '2', bg: cardBg, color: textColor },
-      { label: '3', type: 'digit', value: '3', bg: cardBg, color: textColor },
-      { label: '+', icon: Plus, type: 'operator', value: '+', bg: orange + '15', color: orange },
-    ],
-    [
-      { label: '.', type: 'digit', value: '.', bg: cardBg, color: textColor },
-      { label: '0', type: 'digit', value: '0', bg: cardBg, color: textColor },
-      { label: '⌫', icon: Delete, type: 'action', value: 'backspace', bg: borderColor + '30', color: textMuted },
-      { label: '=', icon: Equal, type: 'equals', value: '=', bg: primary, color: '#FFFFFF' },
-    ],
+      { label: '%', type: 'action', value: 'percent', color: textColor },
+      { label: '0', type: 'digit', value: '0', color: textColor },
+      { label: '.', type: 'digit', value: '.', color: textColor },
+    ]
   ];
 
   const handleButtonPress = (btn: ButtonConfig) => {
@@ -190,12 +194,54 @@ export default function CalculatorScreen() {
         if (btn.value === 'clear') handleClear();
         else if (btn.value === 'backspace') handleBackspace();
         else if (btn.value === 'percent') handlePercent();
-        else if (btn.value === 'sign') handleToggleSign();
         break;
     }
   };
 
-  const displayFontSize = display.length > 12 ? 28 : display.length > 9 ? 34 : 42;
+  const isInitial = display === '0' && previousValue === null && !operator && history === '';
+  const displayText = isInitial ? '' : formatDisplay(display);
+  const displayFontSize = displayText.length > 10 ? 44 : 64;
+
+  const renderButton = (btn: ButtonConfig, w: number, h: number) => {
+    const isEquals = btn.type === 'equals';
+    const bg = isEquals ? primary : cardBg;
+    const contentColor = isEquals ? '#FFFFFF' : btn.color || textColor;
+
+    return (
+      <Pressable
+        key={btn.value + btn.label}
+        onPress={() => handleButtonPress(btn)}
+        style={({ pressed }) => ({
+          width: w,
+          height: h,
+          borderRadius: 24,
+          backgroundColor: bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: pressed ? 0.7 : 1,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.04,
+          shadowRadius: 4,
+          elevation: .5,
+        })}
+      >
+        {btn.icon ? (
+          <Icon name={btn.icon} size={28} color={contentColor} strokeWidth={1.5} />
+        ) : (
+          <Text
+            style={{
+              fontSize: 28,
+              fontWeight: '400',
+              color: contentColor,
+            }}
+          >
+            {btn.label}
+          </Text>
+        )}
+      </Pressable>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -205,21 +251,20 @@ export default function CalculatorScreen() {
           title: t('common.calculator'),
           headerLargeTitle: false,
           headerTransparent: true,
-          headerLargeTitleShadowVisible: false,
+          headerShadowVisible:false,
         }} 
       />
 
       {/* Display Area */}
-      <View style={{ flex: 1, justifyContent: 'flex-end', paddingHorizontal: PADDING }}>
-        {/* History */}
+      <View style={{ flex: 1, justifyContent: 'flex-end', paddingHorizontal: 32, paddingBottom: 24 }}>
         {history !== '' && (
           <Text
             style={{
-              fontSize: 16,
+              fontSize: 28,
               color: textMuted,
               textAlign: 'right',
-              marginBottom: 6,
-              fontWeight: '500',
+              marginBottom: 12,
+              fontWeight: '300',
             }}
             numberOfLines={1}
           >
@@ -227,105 +272,54 @@ export default function CalculatorScreen() {
           </Text>
         )}
 
-        {/* Main Display */}
-        <View
-          style={{
-            backgroundColor: cardBg,
-            borderRadius: 20,
-            paddingVertical: 24,
-            paddingHorizontal: 24,
-            marginBottom: 16,
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            minHeight: 100,
-            borderWidth: 1,
-            borderColor: borderColor + '30',
-          }}
-        >
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', minHeight: 80 }}>
           <Text
             style={{
               fontSize: displayFontSize,
-              fontWeight: '800',
+              fontWeight: '300',
               color: textColor,
               letterSpacing: 0.5,
+              textAlign: 'right',
             }}
             numberOfLines={1}
             adjustsFontSizeToFit
           >
-            {formatDisplay(display)}
+            {displayText}
           </Text>
-
-          {/* Active operator indicator */}
-          {operator && waitingForOperand && (
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                marginTop: 8,
-                backgroundColor: orange + '14',
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderRadius: 6,
-              }}
-            >
-              <Text style={{ fontSize: 12, fontWeight: '700', color: orange }}>
-                {operator}
-              </Text>
-            </View>
-          )}
+          
+          <Animated.View 
+            style={{ 
+              width: 3, 
+              height: displayFontSize * 0.8, 
+              backgroundColor: primary, 
+              marginLeft: 6, 
+              opacity: blinkAnim,
+              borderRadius: 2
+            }} 
+          />
         </View>
       </View>
 
       {/* Button Grid */}
-      <View style={{ paddingHorizontal: PADDING, paddingBottom: 24 + insets.bottom, gap: GAP }}>
-        {buttons.map((row, rowIndex) => (
+      <View style={{ paddingHorizontal: PADDING, paddingBottom: 32 + insets.bottom, gap: GAP }}>
+        {buttonsLayout.map((row, rowIndex) => (
           <View key={rowIndex} style={{ flexDirection: 'row', gap: GAP }}>
-            {row.map((btn) => {
-              const isActiveOp = btn.type === 'operator' && operator === btn.value && waitingForOperand;
-              return (
-                <Pressable
-                  key={btn.value + btn.label}
-                  onPress={() => handleButtonPress(btn)}
-                  style={({ pressed }) => ({
-                    width: btnWidth,
-                    height: btnHeight,
-                    borderRadius: 14,
-                    backgroundColor: isActiveOp ? orange : (btn.bg || cardBg),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: pressed ? 0.7 : 1,
-                    shadowColor: btn.type === 'equals' ? primary : 'transparent',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: btn.type === 'equals' ? 0.3 : 0,
-                    shadowRadius: 6,
-                    elevation: btn.type === 'equals' ? 4 : 0,
-                    borderWidth: isActiveOp ? 0 : 1,
-                    borderColor: borderColor + '15',
-                  })}
-                >
-                  {btn.icon ? (
-                    <Icon
-                      name={btn.icon}
-                      size={btn.type === 'equals' ? 22 : 18}
-                      color={isActiveOp ? '#FFFFFF' : btn.color || textColor}
-                    />
-                  ) : (
-                    <Text
-                      style={{
-                        fontSize: btn.type === 'digit' ? 22 : 20,
-                        fontWeight: '700',
-                        color: isActiveOp ? '#FFFFFF' : btn.color || textColor,
-                      }}
-                    >
-                      {btn.label}
-                    </Text>
-                  )}
-                </Pressable>
-              );
-            })}
+            {row.map((btn) => renderButton(btn, btnWidth, btnHeight))}
           </View>
         ))}
+
+        <View style={{ flexDirection: 'row', gap: GAP }}>
+          <View style={{ width: btnWidth * 3 + GAP * 2, gap: GAP }}>
+            {bottomLeftButtons.map((row, rowIndex) => (
+              <View key={`bl-${rowIndex}`} style={{ flexDirection: 'row', gap: GAP }}>
+                {row.map((btn) => renderButton(btn, btnWidth, btnHeight))}
+              </View>
+            ))}
+          </View>
+          <View>
+            {renderButton({ label: '=', type: 'equals', value: '=' }, btnWidth, btnHeight * 2 + GAP)}
+          </View>
+        </View>
       </View>
     </View>
   );
