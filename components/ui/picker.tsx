@@ -234,7 +234,7 @@ export function Picker({
             width: label ? 128 : 'auto',
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 8,
+            gap: 12,
           }}
           pointerEvents='none'
         >

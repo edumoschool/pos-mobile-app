@@ -52,6 +52,7 @@ export default function RootLayout() {
                 <Stack.Screen name='products/index' />
                 <Stack.Screen name='products/new' options={{ headerShown: false }} />
                 <Stack.Screen name='products/[id]/index' options={{ headerShown: false }} />
+                <Stack.Screen name='transactions/create'  />
                 <Stack.Screen name='+not-found' />
               </Stack>
             </AuthProvider>

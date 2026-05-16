@@ -450,7 +450,7 @@ export interface Transaction {
 }
 
 export interface CreateTransactionPayload {
-  branchId: string;
+  branchId?: string;
   type: TransactionType;
   amount: number;
   currency?: Currency;
@@ -499,6 +499,7 @@ export interface CreateClientTransactionPayload {
   currency?: Currency;
   paymentMethod?: PaymentMethod;
   description?: string;
+  dueDate?: string;
 }
 
 // ─── Supplier Transaction ───────────────────────────────────────────────────
@@ -809,4 +810,4 @@ export interface SaleListQuery extends PaginationQuery {
   status?: SaleStatus;
   from?: string;
   to?: string;
-}
+}

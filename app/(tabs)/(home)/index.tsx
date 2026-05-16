@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, Platform, Image, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Platform, Image, StyleSheet, useColorScheme, Text as RNText } from 'react-native';
+import { Marquee } from '@animatereactnative/marquee';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
@@ -26,12 +27,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SearchBar } from '@/components/ui/searchbar';
 import { Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverClose } from '@/components/ui/popover';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
+import { exchangeRatesApi } from '@/api/exchange-rates';
 import { usersApi } from '@/api/users';
-import { ActivityIndicator, Keyboard, Alert, Linking, RefreshControl } from 'react-native';
+import { ActivityIndicator, Alert, Linking, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import * as Contacts from 'expo-contacts';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { formatAmount } from '@/lib/utils';
@@ -49,6 +50,9 @@ export default function HomeScreen() {
   const [clientSortBy, setClientSortBy] = useState<'createdAt' | 'clientTransAmount' | 'alphabetic'>('alphabetic');
   const [clientOrder, setClientOrder] = useState<'asc' | 'desc'>('asc');
 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const bg = useColor('background');
   const card = useColor('card');
   const border = useColor('border');
@@ -58,6 +62,13 @@ export default function HomeScreen() {
   const primaryForeground = useColor('primaryForeground');
   const red = useColor('red');
   const green = useColor('green');
+
+  const { data: exchangeRate } = useQuery({
+    queryKey: ['exchange-rate-today'],
+    queryFn: exchangeRatesApi.getToday,
+    staleTime: 1000 * 60 * 60,
+  });
+
 
   const segments = [t('home.segments.clients'), t('home.segments.suppliers'), t('home.segments.employees')];
   const { tab } = useLocalSearchParams<{ tab: string }>();
@@ -285,6 +296,27 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* ── USD Rate Marquee ──────────────────────────────────── */}
+      {exchangeRate && (
+        <Marquee spacing={48} speed={0.6} style={{ marginBottom: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {[
+              { currency: 'UZS' },
+              { currency: "so'm" },
+              { currency: 'сум' },
+            ].map(({ currency }, i) => (
+              <View key={i} style={{ flexDirection: 'row', alignItems: 'center', paddingRight: 48 }}>
+                <RNText style={{ fontSize: 13, color: muted }}>🇺🇸 1 USD = </RNText>
+                <RNText style={{ fontSize: 13, color: text, fontWeight: '700' }}>
+                  {formatAmount(exchangeRate.usdToUzs)}
+                </RNText>
+                <RNText style={{ fontSize: 13, color: muted }}> {currency} 🇺🇿</RNText>
+              </View>
+            ))}
+          </View>
+        </Marquee>
+      )}
+
       {/* ── Segments ──────────────────────────────────────────── */}
       <View style={{ paddingHorizontal: 2, paddingBottom: 16, marginHorizontal: 2 }}>
         <SegmentedControl
@@ -294,6 +326,7 @@ export default function HomeScreen() {
             setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
           }}
           tintColor="#1b0d44ff"
+          appearance={isDark ? 'dark' : 'light'}
           style={{ height: 40, }}
         />
       </View>

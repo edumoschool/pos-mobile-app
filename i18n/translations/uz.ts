@@ -30,6 +30,7 @@ export default {
   tabs: {
     home: "Asosiy",
     products: "Mahsulotlar",
+    transactions: "Tranzaksiyalar",
     settings: "Sozlamalar",
   },
   common: {
@@ -127,7 +128,8 @@ export default {
     deleteConfirmation: "Haqiqatan ham bu mijozni o'chirib tashlamoqchimisiz?",
     transactionDetails: "Tranzaksiya tafsilotlari",
     deleteTxConfirmation: "Haqiqatan ham bu tranzaksiyani o'chirib tashlamoqchimisiz?",
-    totalAmount: "Umumiy balans"
+    totalAmount: "Umumiy balans",
+    dueDate: "Muddat"
   },
   supplierDetail: {
     title: "Ta'minotchi ma'lumotlari",
@@ -144,6 +146,7 @@ export default {
     call: "Qo'ng'iroq qilish",
     noPhone: "Telefon raqami yo'q",
     edit: "Tahrirlash",
+    deleteConfirmation: "Haqiqatan ham bu ta'minotchini o'chirib tashlamoqchimisiz?",
     placeholders: {
         name: "Ta'minotchi nomini kiriting"
     }
@@ -248,5 +251,25 @@ export default {
     errors: {
       createFailed: "O'lchov birligini yaratib bo'lmadi"
     }
+  },
+  transactions: {
+    title: "Tranzaksiyalar",
+    all: "Barchasi",
+    income: "Kirim",
+    expense: "Chiqim",
+    totalIncome: "Jami kirim",
+    totalExpense: "Jami chiqim",
+    search: "Tranzaksiya qidirish...",
+    noResults: "Tranzaksiyalar topilmadi",
+    addTransaction: "Tranzaksiya qo'shish",
+    type: "Turi",
+    branch: "Filial",
+    category: "Kategoriya",
+    selectCategory: " Kategoriyani tanlang",
+    selectBranch: " Filialni tanlang",
+    created: "Tranzaksiya qo'shildi",
+    deleted: "Tranzaksiya o'chirildi",
+    deleteConfirmation: "Haqiqatan ham bu tranzaksiyani o'chirib tashlamoqchimisiz?",
+    fillRequired: "Iltimos, barcha majburiy maydonlarni to'ldiring"
   }
 };

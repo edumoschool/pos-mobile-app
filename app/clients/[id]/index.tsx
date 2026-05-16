@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Input } from '@/components/ui/input';
 import { Picker } from '@/components/ui/picker';
+import { DatePicker } from '@/components/ui/date-picker';
 import { formatAmount } from '@/lib/utils';
 import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/toast';
@@ -46,6 +47,8 @@ export default function ClientDetailScreen() {
   const primary = useColor('primary');
   const red = useColor('red');
   const green = useColor('green');
+  const orange = useColor('orange');
+  const blue = useColor('blue');
 
   const queryClient = useQueryClient();
   const deleteDialog = useAlertDialog();
@@ -57,6 +60,7 @@ export default function ClientDetailScreen() {
   const [currency, setCurrency] = React.useState<'USD' | 'UZS'>('USD');
   const [description, setDescription] = React.useState('');
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>('cash');
+  const [dueDate, setDueDate] = React.useState<Date | undefined>(undefined);
 
   const [isDetailSheetVisible, setIsDetailSheetVisible] = React.useState(false);
   const [selectedTransaction, setSelectedTransaction] = React.useState<ClientTransaction | null>(null);
@@ -75,6 +79,7 @@ export default function ClientDetailScreen() {
       setIsSheetVisible(false);
       setAmount('');
       setDescription('');
+      setDueDate(undefined);
     },
     onError: (err) => {
       showError(t('common.error'), getApiErrorMessage(err));
@@ -118,6 +123,7 @@ export default function ClientDetailScreen() {
       currency: currency,
       description: description || undefined,
       paymentMethod: paymentMethod,
+      dueDate: transactionType === 'outcome' && dueDate ? dueDate.toISOString() : undefined,
     });
   };
 
@@ -208,33 +214,33 @@ export default function ClientDetailScreen() {
 
       {/* Balance Cards */}
       <View style={{ paddingHorizontal: 10, gap: 8, marginTop: 8 }}>
-        <View style={{ backgroundColor: '#FFF7ED', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFEDD5', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ color: '#EA580C', fontWeight: '800', fontSize: 16 }}>Σ</Text>
+        <View style={{ backgroundColor: orange + '15', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: orange + '30' }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: orange + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ color: orange, fontWeight: '800', fontSize: 16 }}>Σ</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: '#FB923C', fontWeight: '700' }}>{t('clientDetail.totalAmount')}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#7C2D12' }}>{formatAmount(totalAmount)} UZS</Text>
+            <Text style={{ fontSize: 11, color: orange, fontWeight: '700' }}>{t('clientDetail.totalAmount')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: orange }}>{formatAmount(totalAmount)} UZS</Text>
           </View>
         </View>
 
-        <View style={{ backgroundColor: '#EFF6FF', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ color: '#2d88f7ff', fontWeight: '800', fontSize: 16 }}>$</Text>
+        <View style={{ backgroundColor: blue + '15', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: blue + '30' }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: blue + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ color: blue, fontWeight: '800', fontSize: 16 }}>$</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: '#60A5FA', fontWeight: '700' }}>{t('clientDetail.balanceUsdLabel')}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#1E3A8A' }}>${formatAmount(totalAmountUsd)}</Text>
+            <Text style={{ fontSize: 11, color: blue, fontWeight: '700' }}>{t('clientDetail.balanceUsdLabel')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: blue }}>${formatAmount(totalAmountUsd)}</Text>
           </View>
         </View>
-        
-        <View style={{ backgroundColor: '#F0FDF4', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ color: '#16A34A', fontWeight: '800', fontSize: 11 }}>UZS</Text>
+
+        <View style={{ backgroundColor: green + '15', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: green + '30' }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: green + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ color: green, fontWeight: '800', fontSize: 11 }}>UZS</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: '#4ADE80', fontWeight: '700' }}>{t('clientDetail.balanceUzsLabel')}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#14532D' }}>{formatAmount(totalAmountUzs)}</Text>
+            <Text style={{ fontSize: 11, color: green, fontWeight: '700' }}>{t('clientDetail.balanceUzsLabel')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: green }}>{formatAmount(totalAmountUzs)}</Text>
           </View>
         </View>
       </View>
@@ -310,7 +316,7 @@ export default function ClientDetailScreen() {
             colors={[primary]}
           />
         }
-        renderItem={({ item, index }: { item: ClientTransaction, index: number }) => {
+        renderItem={({ item }: { item: ClientTransaction }) => {
           const isIncome = item.type === 'income';
           const iconColor = isIncome ? green : red;
           const Icon = isIncome ? ArrowDownLeft : ArrowUpRight;
@@ -353,6 +359,11 @@ export default function ClientDetailScreen() {
                   <Text style={{ fontSize: 10, color: muted }}>
                     {new Date(item.createdAt).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })}
                   </Text>
+                  {!isIncome && item.dueDate && (
+                    <Text style={{ fontSize: 10, color: red, fontWeight: '600' }}>
+                      {t('clientDetail.dueDate')}: {new Date(item.dueDate).toLocaleDateString(i18n.language, { dateStyle: 'medium' })}
+                    </Text>
+                  )}
                 </View>
               </View>
             </TouchableOpacity>
@@ -391,7 +402,7 @@ export default function ClientDetailScreen() {
         isVisible={isSheetVisible}
         onClose={() => setIsSheetVisible(false)}
         title={transactionType === 'income' ? t('clientDetail.makePayment') : t('clientDetail.giveLoan')}
-        snapPoints={[0.65]}
+        snapPoints={[transactionType === 'outcome' ? 0.78 : 0.65]}
       >
         <View style={{ gap: 20, paddingTop: 10 }}>
           <Input
@@ -426,6 +437,18 @@ export default function ClientDetailScreen() {
             ]}
             variant="outline"
           />
+
+          {transactionType === 'outcome' && (
+            <DatePicker
+              mode="date"
+              label={t('clientDetail.dueDate')}
+              value={dueDate}
+              onChange={(val) => setDueDate(val as Date | undefined)}
+              minimumDate={new Date()}
+              variant="outline"
+              placeholder={t('clientDetail.dueDate')}
+            />
+          )}
 
           <Input
             label={t('clientDetail.description') || 'Description'}
@@ -495,6 +518,14 @@ export default function ClientDetailScreen() {
                 {selectedTransaction && new Date(selectedTransaction.createdAt).toLocaleString(i18n.language, { dateStyle: 'medium', timeStyle: 'short' })}
               </Text>
             </View>
+            {selectedTransaction?.type === 'outcome' && selectedTransaction.dueDate && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <Text style={{ color: muted }}>{t('clientDetail.dueDate')}</Text>
+                <Text style={{ fontWeight: '600', color: red }}>
+                  {new Date(selectedTransaction.dueDate).toLocaleDateString(i18n.language, { dateStyle: 'medium' })}
+                </Text>
+              </View>
+            )}
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ color: muted }}>{t('common.paymentMethod')}</Text>
               <Text style={{ fontWeight: '600', color: text }}>

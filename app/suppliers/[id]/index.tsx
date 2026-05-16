@@ -46,6 +46,8 @@ export default function SupplierDetailScreen() {
   const primary = useColor('primary');
   const red = useColor('red');
   const green = useColor('green');
+  const orange = useColor('orange');
+  const blue = useColor('blue');
 
   const queryClient = useQueryClient();
   const deleteDialog = useAlertDialog();
@@ -208,33 +210,33 @@ export default function SupplierDetailScreen() {
 
       {/* Balance Cards */}
       <View style={{ paddingHorizontal: 10, gap: 8, marginTop: 8 }}>
-        <View style={{ backgroundColor: '#FFF7ED', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#FFEDD5', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ color: '#EA580C', fontWeight: '800', fontSize: 16 }}>Σ</Text>
+        <View style={{ backgroundColor: orange + '15', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: orange + '30' }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: orange + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ color: orange, fontWeight: '800', fontSize: 16 }}>Σ</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: '#FB923C', fontWeight: '700' }}>{t('clientDetail.totalAmount')}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#7C2D12' }}>{formatAmount(totalAmount)} UZS</Text>
+            <Text style={{ fontSize: 11, color: orange, fontWeight: '700' }}>{t('clientDetail.totalAmount')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: orange }}>{formatAmount(totalAmount)} UZS</Text>
           </View>
         </View>
 
-        <View style={{ backgroundColor: '#EFF6FF', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ color: '#2d88f7ff', fontWeight: '800', fontSize: 16 }}>$</Text>
+        <View style={{ backgroundColor: blue + '15', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: blue + '30' }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: blue + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ color: blue, fontWeight: '800', fontSize: 16 }}>$</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: '#60A5FA', fontWeight: '700' }}>{t('clientDetail.balanceUsdLabel')}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#1E3A8A' }}>${formatAmount(totalAmountUsd)}</Text>
+            <Text style={{ fontSize: 11, color: blue, fontWeight: '700' }}>{t('clientDetail.balanceUsdLabel')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: blue }}>${formatAmount(totalAmountUsd)}</Text>
           </View>
         </View>
-        
-        <View style={{ backgroundColor: '#F0FDF4', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#DCFCE7', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
-            <Text style={{ color: '#16A34A', fontWeight: '800', fontSize: 11 }}>UZS</Text>
+
+        <View style={{ backgroundColor: green + '15', padding: 10, borderRadius: 12, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: green + '30' }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: green + '20', alignItems: 'center', justifyContent: 'center', marginRight: 12 }}>
+            <Text style={{ color: green, fontWeight: '800', fontSize: 11 }}>UZS</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 11, color: '#4ADE80', fontWeight: '700' }}>{t('clientDetail.balanceUzsLabel')}</Text>
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#14532D' }}>{formatAmount(totalAmountUzs)}</Text>
+            <Text style={{ fontSize: 11, color: green, fontWeight: '700' }}>{t('clientDetail.balanceUzsLabel')}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: green }}>{formatAmount(totalAmountUzs)}</Text>
           </View>
         </View>
       </View>
@@ -451,7 +453,7 @@ export default function SupplierDetailScreen() {
         isVisible={deleteDialog.isVisible}
         onClose={deleteDialog.close}
         title={t('common.delete') || 'Delete Supplier'}
-        description={t('products.deleteConfirmation') || 'Are you sure you want to delete this supplier?'}
+        description={t('supplierDetail.deleteConfirmation')}
         confirmText={t('common.delete') || 'Delete'}
         cancelText={t('common.cancel') || 'Cancel'}
         onConfirm={deleteMutation.mutate}

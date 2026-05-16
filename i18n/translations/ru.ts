@@ -30,6 +30,7 @@ export default {
   tabs: {
     home: "Главная",
     products: "Товары",
+    transactions: "Транзакции",
     settings: "Настройки",
   },
   common: {
@@ -127,7 +128,8 @@ export default {
     deleteConfirmation: "Вы уверены, что хотите удалить этого клиента?",
     transactionDetails: "Детали транзакции",
     deleteTxConfirmation: "Вы уверены, что хотите удалить эту транзакцию?",
-    totalAmount: "Общий баланс"
+    totalAmount: "Общий баланс",
+    dueDate: "Срок погашения"
   },
   supplierDetail: {
     title: "Данные поставщика",
@@ -144,6 +146,7 @@ export default {
     call: "Позвонить",
     noPhone: "Нет номера телефона",
     edit: "Редактировать",
+    deleteConfirmation: "Вы уверены, что хотите удалить этого поставщика?",
     placeholders: {
         name: "Введите имя поставщика"
     }
@@ -248,5 +251,25 @@ export default {
     errors: {
       createFailed: "Не удалось создать единицу измерения"
     }
+  },
+  transactions: {
+    title: "Транзакции",
+    all: "Все",
+    income: "Доход",
+    expense: "Расход",
+    totalIncome: "Общий доход",
+    totalExpense: "Общий расход",
+    search: "Поиск транзакций...",
+    noResults: "Транзакции не найдены",
+    addTransaction: "Добавить транзакцию",
+    type: "Тип",
+    branch: "Филиал",
+    category: "Категория",
+    selectCategory: " Выберите категорию",
+    selectBranch: " Выберите филиал",
+    created: "Транзакция добавлена",
+    deleted: "Транзакция удалена",
+    deleteConfirmation: "Вы уверены, что хотите удалить эту транзакцию?",
+    fillRequired: "Пожалуйста, заполните все обязательные поля"
   }
 };

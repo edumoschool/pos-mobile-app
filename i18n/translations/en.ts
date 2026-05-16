@@ -30,6 +30,7 @@ export default {
   tabs: {
     home: "Home",
     products: "Products",
+    transactions: "Transactions",
     settings: "Settings",
   },
   common: {
@@ -127,7 +128,8 @@ export default {
     deleteConfirmation: "Are you sure you want to delete this client?",
     transactionDetails: "Transaction Details",
     deleteTxConfirmation: "Are you sure you want to delete this transaction?",
-    totalAmount: "Total Balance"
+    totalAmount: "Total Balance",
+    dueDate: "Due Date"
   },
   supplierDetail: {
     title: "Supplier Details",
@@ -144,6 +146,7 @@ export default {
     call: "Call",
     noPhone: "No phone number",
     edit: "Edit Supplier",
+    deleteConfirmation: "Are you sure you want to delete this supplier?",
     placeholders: {
         name: "Enter supplier name"
     }
@@ -248,5 +251,25 @@ export default {
     errors: {
       createFailed: "Could not create unit"
     }
+  },
+  transactions: {
+    title: "Transactions",
+    all: "All",
+    income: "Income",
+    expense: "Expense",
+    totalIncome: "Total Income",
+    totalExpense: "Total Expense",
+    search: "Search transactions...",
+    noResults: "No transactions found",
+    addTransaction: "Add Transaction",
+    type: "Type",
+    branch: "Branch",
+    category: "Category",
+    selectCategory: " Select a category",
+    selectBranch: " Select a branch",
+    created: "Transaction added",
+    deleted: "Transaction deleted",
+    deleteConfirmation: "Are you sure you want to delete this transaction?",
+    fillRequired: "Please fill in all required fields"
   }
 };
