@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Platform, StyleSheet, Keyboard, Alert, ScrollView, ActivityIndicator } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
@@ -11,12 +11,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { clientsApi } from '@/api/partners';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
-import { User, MapPin, Trash2 } from 'lucide-react-native';
+import { User, MapPin } from 'lucide-react-native';
 
 export default function EditClientScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
   const [fullName, setFullName] = useState('');
@@ -125,20 +124,9 @@ export default function EditClientScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTitle: t('common.save'), // Or add a specific "Edit Client" key
-          headerStyle: { backgroundColor: bg },
-          headerShadowVisible: false,
-          headerRight: () => (
-            <TouchableOpacity onPress={handleDelete} style={{ marginRight: 8 }}>
-              <Trash2 size={22} color={red} />
-            </TouchableOpacity>
-          )
-        }}
+      <Header
+        title={t('common.save')}
       />
-
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 10 }}>
         <View style={{ gap: 24 }}>
           <View>

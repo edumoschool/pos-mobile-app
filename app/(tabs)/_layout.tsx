@@ -37,6 +37,16 @@ export default function TabsLayout() {
         <Label>{t('tabs.home')}</Label>
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name='sales'>
+        {Platform.select({
+          ios: <Icon sf='doc.text.fill' />,
+          android: (
+            <Icon src={<VectorIcon family={MaterialIcons} name='file-text' />} />
+          ),
+        })}
+        <Label>{t('tabs.sales')}</Label>
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name='(transactions)'>
         {Platform.select({
           ios: <Icon sf='arrow.left.arrow.right' />,

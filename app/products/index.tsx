@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Image, ScrollView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Image, ScrollView, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { router, Stack } from 'expo-router';
-import { Plus, Filter, Package, ChevronDown, ChevronLeft } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Plus, Package } from 'lucide-react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Picker } from '@react-native-picker/picker';
 
@@ -13,6 +13,8 @@ import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
 import { categoriesApi, brandCategoriesApi } from '@/api/catalog';
 import { SearchBar } from '@/components/ui/searchbar';
+import { Header } from '@/components/ui/header';
+import { formatAmount } from '@/lib/utils';
 import { Product } from '@/types';
 
 export default function ProductsScreen() {
@@ -50,6 +52,8 @@ export default function ProductsScreen() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    refetch,
+    isRefetching,
   } = useInfiniteQuery({
     queryKey: ['products', searchQuery, selectedCategory, selectedBrandCategory],
     queryFn: ({ pageParam = 1 }) =>
@@ -85,24 +89,19 @@ export default function ProductsScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen 
-        options={{
-          headerShown: true,
-          title: t('products.title'),
-          headerStyle: { backgroundColor: bg },
-          headerShadowVisible: true,
-          headerRight: () => (
-            <TouchableOpacity
-              style={[styles.addButton, { backgroundColor: primary }]}
-              onPress={() => router.push('/products/new' as any)}
-            >
-              <Plus size={20} color={primaryForeground} />
-            </TouchableOpacity>
-          ),
-        }}
+    <View style={[styles.container, { backgroundColor: bg }]}>
+      <Header
+        title={t('products.title')}
+        showBack={true}
+        right={
+          <TouchableOpacity
+            style={[styles.addButton, { backgroundColor: primary }]}
+            onPress={() => router.push('/products/new' as any)}
+          >
+            <Plus size={20} color={primaryForeground} />
+          </TouchableOpacity>
+        }
       />
-      <View style={[styles.container, { backgroundColor: bg }]}>
         {/* ── Search & Filter ─────────────────────────────────── */}
       <View style={styles.searchRow}>
         <View style={{ flex: 1 }}>
@@ -184,6 +183,7 @@ export default function ProductsScreen() {
               if (hasNextPage) fetchNextPage();
             }}
             onEndReachedThreshold={0.5}
+            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={primary} colors={[primary]} />}
             ListFooterComponent={() => {
               if (!isFetchingNextPage) return null;
               return <ActivityIndicator size="small" color={primary} style={{ marginVertical: 16 }} />;
@@ -232,7 +232,7 @@ export default function ProductsScreen() {
                       {qty} {item.unit?.shortName || ''}
                     </Text>
                     <Text style={{ fontSize: 13, fontWeight: '500', color: muted, marginTop: 1 }}>
-                      {item.sellingPrice.toLocaleString()} {item.currency}
+                      {formatAmount(item.sellingPrice)} {item.currency}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -266,7 +266,6 @@ export default function ProductsScreen() {
         )}
       </View>
     </View>
-    </>
   );
 }
 

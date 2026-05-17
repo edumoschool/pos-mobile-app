@@ -30,6 +30,7 @@ export default {
   tabs: {
     home: "Главная",
     products: "Товары",
+    sales: "Продажи",
     transactions: "Транзакции",
     settings: "Настройки",
   },
@@ -64,7 +65,8 @@ export default {
     noResults: "Ничего не найдено",
     roles: {
       client: "Клиент",
-      supplier: "Поставщик"
+      supplier: "Поставщик",
+      employee: "Сотрудник"
     },
     sortBy: "Сортировка",
     sortOrder: "Порядок",
@@ -269,7 +271,32 @@ export default {
     selectBranch: " Выберите филиал",
     created: "Транзакция добавлена",
     deleted: "Транзакция удалена",
+    date: "Дата",
+    detail: "Детали транзакции",
+    deleteTitle: "Удалить транзакцию",
     deleteConfirmation: "Вы уверены, что хотите удалить эту транзакцию?",
     fillRequired: "Пожалуйста, заполните все обязательные поля"
+  },
+  sales: {
+    title: "Продажи",
+    createPosSale: "Новая Продажа",
+    tabs: {
+      all: "Все",
+      completed: "Завершено",
+      debt: "Долг",
+      cancelled: "Отменено"
+    },
+    status: {
+      completed: "Завершено",
+      debt: "Долг",
+      cancelled: "Отменено",
+      unknown: "Неизвестно"
+    },
+    walkInCustomer: "Обычный клиент",
+    noResults: "Продажи не найдены",
+    items_one: "{{count}} товар",
+    items_few: "{{count}} товара",
+    items_many: "{{count}} товаров",
+    items_other: "{{count}} товаров"
   }
 };

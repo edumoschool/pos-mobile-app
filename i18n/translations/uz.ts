@@ -30,6 +30,7 @@ export default {
   tabs: {
     home: "Asosiy",
     products: "Mahsulotlar",
+    sales: "Sotuvlar",
     transactions: "Tranzaksiyalar",
     settings: "Sozlamalar",
   },
@@ -64,7 +65,8 @@ export default {
     noResults: "Natija topilmadi",
     roles: {
       client: "Mijoz",
-      supplier: "Ta'minotchi"
+      supplier: "Ta'minotchi",
+      employee: "Xodim"
     },
     sortBy: "Saralash turi",
     sortOrder: "Tartib",
@@ -269,7 +271,30 @@ export default {
     selectBranch: " Filialni tanlang",
     created: "Tranzaksiya qo'shildi",
     deleted: "Tranzaksiya o'chirildi",
+    date: "Sana",
+    detail: "Tranzaksiya tafsiloti",
+    deleteTitle: "Tranzaksiyani o'chirish",
     deleteConfirmation: "Haqiqatan ham bu tranzaksiyani o'chirib tashlamoqchimisiz?",
     fillRequired: "Iltimos, barcha majburiy maydonlarni to'ldiring"
+  },
+  sales: {
+    title: "Sotuvlar",
+    createPosSale: "Sotuv yaratish",
+    tabs: {
+      all: "Barchasi",
+      completed: "Tugallangan",
+      debt: "Qarz",
+      cancelled: "Bekor qilingan"
+    },
+    status: {
+      completed: "Tugallangan",
+      debt: "Qarz",
+      cancelled: "Bekor qilingan",
+      unknown: "Noma'lum"
+    },
+    walkInCustomer: "Odatiy mijoz",
+    noResults: "Sotuvlar topilmadi",
+    items_one: "{{count}} ta mahsulot",
+    items_other: "{{count}} ta mahsulot"
   }
 };

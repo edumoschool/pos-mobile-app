@@ -17,7 +17,6 @@ import {
   Package,
   User,
   Download,
-  Check,
   ArrowUpAZ,
   ArrowDownZA
 } from 'lucide-react-native';
@@ -26,7 +25,7 @@ import { FlashList } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SearchBar } from '@/components/ui/searchbar';
-import { Popover, PopoverTrigger, PopoverContent, PopoverBody, PopoverClose } from '@/components/ui/popover';
+import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
 import { exchangeRatesApi } from '@/api/exchange-rates';
@@ -49,6 +48,7 @@ export default function HomeScreen() {
 
   const [clientSortBy, setClientSortBy] = useState<'createdAt' | 'clientTransAmount' | 'alphabetic'>('alphabetic');
   const [clientOrder, setClientOrder] = useState<'asc' | 'desc'>('asc');
+  const filterSheet = useBottomSheet();
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -353,60 +353,21 @@ export default function HomeScreen() {
 
         {/* Filter & Sort Buttons */}
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Popover>
-            <PopoverTrigger asChild>
-              <TouchableOpacity
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 12,
-                  backgroundColor: clientSortBy !== 'alphabetic' ? primary : card,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderColor: clientSortBy !== 'alphabetic' ? primary : border + '80',
-                  borderWidth: 1,
-                }}
-              >
-                <Filter size={20} color={clientSortBy !== 'alphabetic' ? primaryForeground : primary} />
-              </TouchableOpacity>
-            </PopoverTrigger>
-            <PopoverContent side="top" align="end" maxWidth={200} style={{ minWidth: 200, padding: 0 }}>
-              <PopoverBody style={{ padding: 12 }}>
-                <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 12, color: text }}>
-                  {t('home.sortBy')}
-                </Text>
-                <View style={{ gap: 8 }}>
-                  {[
-                    { label: t('home.sortOptions.alphabetic'), value: 'alphabetic' },
-                    { label: t('home.sortOptions.createdAt'), value: 'createdAt' },
-                    { label: t('home.sortOptions.balance'), value: 'clientTransAmount' },
-                  ].map((opt) => (
-                    <PopoverClose key={opt.value} asChild>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setClientSortBy(opt.value as any);
-                        }}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          paddingVertical: 12,
-                          paddingHorizontal: 16,
-                          backgroundColor: clientSortBy === opt.value ? primary + '15' : 'transparent',
-                          borderRadius: 12,
-                        }}
-                      >
-                        <Text style={{ color: clientSortBy === opt.value ? primary : text, fontWeight: clientSortBy === opt.value ? '600' : '400' }}>
-                          {opt.label}
-                        </Text>
-                        {clientSortBy === opt.value && <Check size={18} color={primary} />}
-                      </TouchableOpacity>
-                    </PopoverClose>
-                  ))}
-                </View>
-              </PopoverBody>
-            </PopoverContent>
-          </Popover>
+          <TouchableOpacity
+            onPress={filterSheet.open}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              backgroundColor: clientSortBy !== 'alphabetic' ? primary : card,
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderColor: clientSortBy !== 'alphabetic' ? primary : border + '80',
+              borderWidth: 1,
+            }}
+          >
+            <Filter size={20} color={clientSortBy !== 'alphabetic' ? primaryForeground : primary} />
+          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setClientOrder(clientOrder === 'asc' ? 'desc' : 'asc')}
@@ -558,8 +519,49 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* ── Add Client Bottom Sheet ───────────────────────────── */}
-
+      {/* ── Filter Bottom Sheet ──────────────────────────────── */}
+      <BottomSheet
+        isVisible={filterSheet.isVisible}
+        onClose={filterSheet.close}
+        title={t('home.sortBy')}
+        snapPoints={[0.35]}
+        disablePanGesture
+      >
+        {[
+          { label: t('home.sortOptions.alphabetic'), value: 'alphabetic' },
+          { label: t('home.sortOptions.createdAt'), value: 'createdAt' },
+          { label: t('home.sortOptions.balance'), value: 'clientTransAmount' },
+        ].map((opt) => {
+          const isSelected = clientSortBy === opt.value;
+          return (
+            <TouchableOpacity
+              key={opt.value}
+              onPress={() => {
+                setClientSortBy(opt.value as any);
+                filterSheet.close();
+              }}
+              style={{
+                paddingVertical: 14,
+                paddingHorizontal: 16,
+                borderRadius: 12,
+                backgroundColor: isSelected ? primary : 'transparent',
+                marginBottom: 4,
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: isSelected ? '600' : '400',
+                  color: isSelected ? primaryForeground : text,
+                }}
+              >
+                {opt.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </BottomSheet>
 
     </View>
   );

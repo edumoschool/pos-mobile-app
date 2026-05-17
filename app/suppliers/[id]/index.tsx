@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from 'react-native';
-import { useLocalSearchParams, router, Stack } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLocalSearchParams, router } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -32,10 +31,10 @@ import { Picker } from '@/components/ui/picker';
 import { formatAmount } from '@/lib/utils';
 import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/toast';
+import { Header } from '@/components/ui/header';
 
 export default function SupplierDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
 
   const bg = useColor('background');
@@ -141,7 +140,7 @@ export default function SupplierDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: bg, justifyContent: 'center', alignItems: 'center', paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={[styles.container, { backgroundColor: bg, justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={primary} />
       </View>
     );
@@ -149,7 +148,7 @@ export default function SupplierDetailScreen() {
 
   if (error || !data) {
     return (
-      <View style={[styles.container, { backgroundColor: bg, justifyContent: 'center', alignItems: 'center', padding: 20, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={[styles.container, { backgroundColor: bg, justifyContent: 'center', alignItems: 'center', padding: 20 }]}>
         <Text style={{ color: red, textAlign: 'center', marginBottom: 12 }}>{t('common.error')}</Text>
         <Button onPress={() => router.back()}>{t('auth.back')}</Button>
       </View>
@@ -278,25 +277,19 @@ export default function SupplierDetailScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: bg, paddingBottom: insets.bottom }]}>
-      <Stack.Screen 
-        options={{
-          headerTitle: t('supplierDetail.title'),
-          headerShown: true,
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', gap: 16, marginRight: 8 }}>
-              <TouchableOpacity onPress={deleteDialog.open}>
-                <Trash2 size={22} color={red} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.push(`/suppliers/${id}/edit` as any)}>
-                <Edit size={22} color={primary} />
-              </TouchableOpacity>
-            </View>
-          ),
-          headerShadowVisible: false,
-          headerStyle: { backgroundColor: bg },
-          headerTintColor: text,
-        }}
+    <View style={[styles.container, { backgroundColor: bg }]}>
+      <Header
+        title={t('supplierDetail.title')}
+        right={
+          <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+            <TouchableOpacity onPress={deleteDialog.open}>
+              <Trash2 size={22} color={red} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push(`/suppliers/${id}/edit` as any)}>
+              <Edit size={22} color={primary} />
+            </TouchableOpacity>
+          </View>
+        }
       />
 
       <FlashList<SupplierTransaction>
@@ -466,7 +459,7 @@ export default function SupplierDetailScreen() {
         disablePanGesture={false}
         snapPoints={[0.6]}
       >
-        <View style={{ paddingBottom: insets.bottom }}>
+        <View>
           {/* Custom Header */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
             <View style={{ width: 40 }} />

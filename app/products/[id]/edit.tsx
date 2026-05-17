@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Image, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Alert } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { 
   ImageIcon, 
   X,
@@ -18,6 +17,8 @@ import { categoriesApi, brandCategoriesApi, unitsApi } from '@/api/catalog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { Header } from '@/components/ui/header';
+import { formatAmount } from '@/lib/utils';
 import { CategoryModal } from '@/components/products/category-modal';
 import { BrandCategoryModal } from '@/components/products/brand-category-modal';
 import { UnitModal } from '@/components/products/unit-modal';
@@ -56,7 +57,6 @@ function NativePicker({
 
 export default function EditProductScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -118,8 +118,8 @@ export default function EditProductScreen() {
       setCategoryId(product.categoryId || '');
       setBrandCategoryId(product.brandCategoryId || '');
       setUnitId(product.unitId || '');
-      setCostPrice(product.costPrice?.toString() || '');
-      setSellingPrice(product.sellingPrice?.toString() || '');
+      setCostPrice(product.costPrice != null ? formatAmount(product.costPrice) : '');
+      setSellingPrice(product.sellingPrice != null ? formatAmount(product.sellingPrice) : '');
       setCurrency(product.currency as 'UZS' | 'USD' || 'UZS');
       setIsActive(product.isActive ?? true);
       
@@ -215,8 +215,8 @@ export default function EditProductScreen() {
       categoryId: categoryId || undefined,
       brandCategoryId: brandCategoryId || undefined,
       unitId: unitId || undefined,
-      costPrice: parseFloat(costPrice) || 0,
-      sellingPrice: parseFloat(sellingPrice) || 0,
+      costPrice: parseFloat(costPrice.replace(/,/g, '')) || 0,
+      sellingPrice: parseFloat(sellingPrice.replace(/,/g, '')) || 0,
       currency,
       quantity: quantity ? parseInt(quantity) : undefined,
       minQuantity: minQuantity ? parseInt(minQuantity) : undefined,
@@ -250,15 +250,8 @@ export default function EditProductScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{
-          headerShown: true,
-          title: t('products.editProduct') || 'Edit Product',
-          headerStyle: { backgroundColor: bg },
-          headerShadowVisible: true,
-        }}
-      />
       <View style={[styles.container, { backgroundColor: bg }]}>
+      <Header title={t('products.editProduct')} />
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         {/* Image Upload */}
         <Text style={[styles.label, { color: text }]}>{t('products.productImage')}</Text>
@@ -375,7 +368,7 @@ export default function EditProductScreen() {
               <Input
                 placeholder="0.00"
                 value={costPrice}
-                onChangeText={setCostPrice}
+                onChangeText={(v) => setCostPrice(formatAmount(v))}
                 keyboardType="numeric"
               />
             </View>
@@ -384,7 +377,7 @@ export default function EditProductScreen() {
               <Input
                 placeholder="0.00"
                 value={sellingPrice}
-                onChangeText={setSellingPrice}
+                onChangeText={(v) => setSellingPrice(formatAmount(v))}
                 keyboardType="numeric"
               />
             </View>

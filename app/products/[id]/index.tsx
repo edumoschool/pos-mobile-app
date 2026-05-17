@@ -1,13 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Image } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Platform } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams, router, Stack } from 'expo-router';
-import { 
-  Pen, 
+import { useLocalSearchParams, router } from 'expo-router';
+import {
+  Pen,
   Trash2,
-  Package, 
+  Package,
   ChevronRight,
 } from 'lucide-react-native';
 
@@ -17,11 +16,12 @@ import { productsApi } from '@/api/products';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
+import { Header } from '@/components/ui/header';
+import { formatAmount } from '@/lib/utils';
 
 export default function ProductDetailScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { isVisible: isDeleteDialogVisible, open: openDeleteDialog, close: closeDeleteDialog } = useAlertDialog();
 
@@ -66,32 +66,26 @@ export default function ProductDetailScreen() {
   const inventory = product.inventory?.[0];
 
   return (
-    <>
-      <Stack.Screen 
-        options={{
-          headerShown: true,
-          title: '',
-          headerStyle: { backgroundColor: bg },
-          headerShadowVisible: true,
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={() => router.push(`/products/${id}/edit` as any)}
-              >
-                <Pen size={20} color={primary} strokeWidth={2.5} />
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.actionButton}
-                onPress={openDeleteDialog}
-              >
-                <Trash2 size={20} color={red} strokeWidth={2.5} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }} 
+    <View style={[styles.container, { backgroundColor: bg }]}>
+      <Header
+        title={product.name}
+        right={
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push(`/products/${id}/edit` as any)}
+            >
+              <Pen size={20} color={primary} strokeWidth={2.5} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={openDeleteDialog}
+            >
+              <Trash2 size={20} color={red} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+        }
       />
-      <View style={[styles.container, { backgroundColor: bg }]}>
         <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Product Image */}
         <View style={styles.imageContainer}>
@@ -134,16 +128,16 @@ export default function ProductDetailScreen() {
 
           {/* Pricing */}
           <View style={{ marginTop: 32 }}>
-            <Text style={styles.sectionTitle}>{t('products.pricing')}</Text>
+            <Text style={[styles.sectionTitle, { color: text }]}>{t('products.pricing')}</Text>
             <View style={[styles.pricingCard, { backgroundColor: card, borderColor: border }]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.priceLabel}>{t('products.purchasePrice')}</Text>
-                <Text style={styles.priceValue}>${product.costPrice.toLocaleString()}</Text>
+                <Text style={[styles.priceValue, { color: text }]}>{formatAmount(product.costPrice)} {product.currency}</Text>
               </View>
               <View style={{ width: 1, height: 40, backgroundColor: border }} />
               <View style={{ flex: 1, paddingLeft: 20 }}>
                 <Text style={styles.priceLabel}>{t('products.sellingPrice')}</Text>
-                <Text style={styles.priceValue}>${product.sellingPrice.toLocaleString()}</Text>
+                <Text style={[styles.priceValue, { color: text }]}>{formatAmount(product.sellingPrice)} {product.currency}</Text>
               </View>
             </View>
           </View>
@@ -152,7 +146,7 @@ export default function ProductDetailScreen() {
           {inventory?.supplier && (
             <TouchableOpacity style={[styles.supplierRow, { borderBottomColor: border, borderBottomWidth: 1 }]}>
               <View>
-                <Text style={styles.sectionTitle}>{t('products.supplier')}</Text>
+                <Text style={[styles.sectionTitle, { color: text }]}>{t('products.supplier')}</Text>
                 <Text style={{ fontSize: 14, color: text, fontWeight: '500', marginTop: 4 }}>{inventory.supplier.name}</Text>
               </View>
               <ChevronRight size={20} color={muted} />
@@ -161,7 +155,7 @@ export default function ProductDetailScreen() {
 
           {/* Description */}
           <View style={{ marginTop: 24 }}>
-            <Text style={styles.sectionTitle}>{t('products.description')}</Text>
+            <Text style={[styles.sectionTitle, { color: text }]}>{t('products.description')}</Text>
             <Text style={{ fontSize: 14, color: muted, lineHeight: 22, marginTop: 8 }}>
               {product.description || t('products.noDescription')}
             </Text>
@@ -181,20 +175,12 @@ export default function ProductDetailScreen() {
         }}
       />
     </View>
-    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  navbar: {
-    height: Platform.OS === 'ios' ? 94 : 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 8,
   },
   navButton: {
     width: 44,
@@ -262,7 +248,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
   },
   pricingCard: {
     flexDirection: 'row',
@@ -281,7 +266,6 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
   },
   supplierRow: {
     flexDirection: 'row',

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Platform, StyleSheet, Keyboard, Alert, ScrollView } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
-import { router, Stack } from 'expo-router';
+import { router } from 'expo-router';
+import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
@@ -15,7 +15,6 @@ import { User, Phone, UserPlus } from 'lucide-react-native';
 
 export default function CreateClientScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
   const [newClientName, setNewClientName] = useState('');
@@ -78,16 +77,7 @@ export default function CreateClientScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          headerTitle: t('home.addClient'),
-
-          headerStyle: { backgroundColor: bg },
-          headerShadowVisible: false,
-        }}
-      />
-
+      <Header title={t('home.addClient')} />
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 10 }}>
         <View style={{ alignItems: 'center', marginBottom: 30 }}>
             <View style={{ 

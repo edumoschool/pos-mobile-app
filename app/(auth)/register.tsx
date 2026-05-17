@@ -16,6 +16,7 @@ import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { Picker } from '@/components/ui/picker';
 import { useAuth } from '@/hooks/useAuth';
 import { useColor } from '@/hooks/useColor';
 import { getApiErrorMessage } from '@/api/client';
@@ -38,8 +39,6 @@ export default function RegisterScreen() {
   const bg = useColor('background');
   const primary = useColor('primary');
   const muted = useColor('textMuted');
-  const card = useColor('card');
-  const border = useColor('border');
   const red = useColor('red');
 
   // State
@@ -188,43 +187,14 @@ export default function RegisterScreen() {
           />
 
           {/* Language selector */}
-          <View style={{ gap: 8 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginLeft: 4 }}>
-              <Globe size={15} color={muted} />
-              <Text variant="caption">{t('auth.language')}</Text>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              {LANGUAGES.map((lang) => {
-                const isSelected = language === lang.value;
-                return (
-                  <Pressable
-                    key={lang.value}
-                    onPress={() => changeLanguage(lang.value)}
-                    style={{
-                      flex: 1,
-                      paddingVertical: 10,
-                      paddingHorizontal: 12,
-                      borderRadius: 12,
-                      backgroundColor: isSelected ? primary : card,
-                      borderWidth: isSelected ? 0 : 1,
-                      borderColor: border,
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 14,
-                        fontWeight: isSelected ? '600' : '400',
-                        color: isSelected ? '#fff' : muted,
-                      }}
-                    >
-                      {lang.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
+          <Picker
+            icon={Globe}
+            label={t('auth.language')}
+            options={LANGUAGES}
+            value={language}
+            onValueChange={(val) => changeLanguage(val as Language)}
+            modalTitle={t('auth.language')}
+          />
         </View>
 
         {/* ── Error ───────────────────────────────────────────────── */}

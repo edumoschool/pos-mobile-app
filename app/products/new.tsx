@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Image, Alert } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { router, Stack } from 'expo-router';
-import { 
-  ChevronLeft, 
-  Image as ImageIcon, 
-  ChevronDown,
-  Upload,
-  Plus,
-  X
-} from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Image as ImageIcon, Plus, X } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 import { Text } from '@/components/ui/text';
@@ -21,6 +13,8 @@ import { categoriesApi, brandCategoriesApi, unitsApi } from '@/api/catalog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { Header } from '@/components/ui/header';
+import { formatAmount } from '@/lib/utils';
 import { CategoryModal } from '@/components/products/category-modal';
 import { BrandCategoryModal } from '@/components/products/brand-category-modal';
 import { UnitModal } from '@/components/products/unit-modal';
@@ -58,7 +52,6 @@ function NativePicker({
 
 export default function AddProductScreen() {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
 
   const [name, setName] = useState('');
@@ -143,8 +136,8 @@ export default function AddProductScreen() {
       categoryId: categoryId || undefined,
       brandCategoryId: brandCategoryId || undefined,
       unitId: unitId || undefined,
-      costPrice: parseFloat(costPrice) || 0,
-      sellingPrice: parseFloat(sellingPrice) || 0,
+      costPrice: parseFloat(costPrice.replace(/,/g, '')) || 0,
+      sellingPrice: parseFloat(sellingPrice.replace(/,/g, '')) || 0,
       currency,
       quantity: parseInt(quantity) || 0,
       minQuantity: parseInt(minQuantity) || 0,
@@ -165,15 +158,8 @@ export default function AddProductScreen() {
 
   return (
     <>
-      <Stack.Screen 
-        options={{
-          headerShown: true,
-          title: t('products.addProduct'),
-          headerStyle: { backgroundColor: bg },
-          headerShadowVisible: true,
-        }}
-      />
       <View style={[styles.container, { backgroundColor: bg }]}>
+      <Header title={t('products.addProduct')} />
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
         {/* Image Upload */}
         <Text style={styles.label}>{t('products.productImage')}</Text>
@@ -290,7 +276,7 @@ export default function AddProductScreen() {
               <Input
                 placeholder="0.00"
                 value={costPrice}
-                onChangeText={setCostPrice}
+                onChangeText={(v) => setCostPrice(formatAmount(v))}
                 keyboardType="numeric"
               />
             </View>
@@ -299,7 +285,7 @@ export default function AddProductScreen() {
               <Input
                 placeholder="0.00"
                 value={sellingPrice}
-                onChangeText={setSellingPrice}
+                onChangeText={(v) => setSellingPrice(formatAmount(v))}
                 keyboardType="numeric"
               />
             </View>
@@ -402,7 +388,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     marginBottom: 8,
-    color: '#000',
   },
   imageUpload: {
     height: 180,

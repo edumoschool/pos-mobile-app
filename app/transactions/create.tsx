@@ -4,9 +4,9 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, DollarSign, Grid3x3, FileText, TrendingUp, TrendingDown, Banknote, Building2 } from 'lucide-react-native';
+import { DollarSign, Grid3x3, FileText, TrendingUp, TrendingDown, Banknote, Building2 } from 'lucide-react-native';
+import { Header } from '@/components/ui/header';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -25,7 +25,6 @@ import { CreateTransactionPayload, TransactionType } from '@/types';
 import { formatAmount } from '@/lib/utils';
 
 export default function CreateTransactionScreen() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const qc = useQueryClient();
@@ -112,26 +111,7 @@ export default function CreateTransactionScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
-      {/* ── Header ──────────────────────────────────────────────────── */}
-      <View style={{ paddingTop: insets.top, backgroundColor: bg }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-          }}
-        >
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={24} color={text} />
-          </TouchableOpacity>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: text }}>
-            {t('transactions.addTransaction')}
-          </Text>
-          <View style={{ width: 24 }} />
-        </View>
-      </View>
+      <Header title={t('transactions.addTransaction')} />
 
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32 }}
@@ -248,7 +228,7 @@ export default function CreateTransactionScreen() {
         style={{
           paddingHorizontal: 16,
           paddingTop: 12,
-          paddingBottom: Math.max(insets.bottom, 16),
+          paddingBottom: 16,
           backgroundColor: bg,
         }}
       >

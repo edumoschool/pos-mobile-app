@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
@@ -19,8 +20,6 @@ import { reportsApi } from '@/api/reports';
 import { Transaction } from '@/types';
 import { formatAmount } from '@/lib/utils';
 import { useRouter } from 'expo-router';
-
-type FilterTab = 'all' | 'income' | 'expense';
 
 function groupByDay(transactions: Transaction[], locale: string): { title: string; data: Transaction[] }[] {
   const map = new Map<string, Transaction[]>();
@@ -49,8 +48,6 @@ export default function TransactionsScreen() {
   const red = useColor('red');
   const blue = useColor('blue');
 
-  const [filter, setFilter] = useState<FilterTab>('all');
-
   // ── Queries ──────────────────────────────────────────────────────────────
   const { data: summary } = useQuery({
     queryKey: ['financial-summary'],
@@ -66,12 +63,11 @@ export default function TransactionsScreen() {
     refetch,
     isRefetching,
   } = useInfiniteQuery({
-    queryKey: ['transactions', filter],
+    queryKey: ['transactions'],
     queryFn: ({ pageParam = 1 }) =>
       transactionsApi.getAll({
         page: pageParam,
         limit: 30,
-        type: filter === 'all' ? undefined : filter,
       }),
     getNextPageParam: (last) =>
       last.meta.page < last.meta.totalPages ? last.meta.page + 1 : undefined,
@@ -129,6 +125,7 @@ export default function TransactionsScreen() {
             borderBottomRightRadius: isLast ? 16 : 0,
           }}
           activeOpacity={0.7}
+          onPress={() => router.push(`/transactions/${tx.id}` as any)}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 16 }}>
             <View style={{
@@ -165,12 +162,6 @@ export default function TransactionsScreen() {
     );
   };
 
-  const TABS: { key: FilterTab; label: string }[] = [
-    { key: 'all', label: t('transactions.all') },
-    { key: 'income', label: t('transactions.income') },
-    { key: 'expense', label: t('transactions.expense') },
-  ];
-
   return (
     <View style={{ flex: 1, backgroundColor: background, paddingTop: insets.top }}>
 
@@ -186,7 +177,7 @@ export default function TransactionsScreen() {
       </View>
 
       {/* ── Summary Cards ───────────────────────────────────────── */}
-      <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 10, marginBottom: 20 }}>
+      <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 10, marginBottom: 12 }}>
         {/* Income Card */}
         <View style={{ flex: 1, backgroundColor: green, borderRadius: 16, padding: 14, shadowColor: green, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -214,22 +205,6 @@ export default function TransactionsScreen() {
         </View>
       </View>
 
-      {/* ── Filter Tabs ─────────────────────────────────────────── */}
-      <View style={{ flexDirection: 'row', marginHorizontal: 16, marginBottom: 16, backgroundColor: card, borderRadius: 24, padding: 4, borderWidth: 1, borderColor: border }}>
-        {TABS.map((tab) => {
-          const active = filter === tab.key;
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              style={{ flex: 1, paddingVertical: 10, borderRadius: 20, alignItems: 'center', backgroundColor: active ? primary : 'transparent' }}
-              onPress={() => setFilter(tab.key)}
-            >
-              <Text style={{ fontSize: 14, fontWeight: active ? '600' : '500', color: active ? '#FFFFFF' : muted }}>{tab.label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
 
       {/* ── List ────────────────────────────────────────────────── */}
       {isLoading ? (
@@ -247,6 +222,11 @@ export default function TransactionsScreen() {
           onEndReachedThreshold={0.3}
           ListEmptyComponent={() => (
             <View style={{ alignItems: 'center', paddingTop: 60 }}>
+              <Image
+                source={require('@/assets/icons/empty.png')}
+                style={{ width: 150, height: 150, marginBottom: 16, opacity: 0.9 }}
+                resizeMode="contain"
+              />
               <Text style={{ color: muted, fontSize: 15 }}>{t('transactions.noResults')}</Text>
             </View>
           )}

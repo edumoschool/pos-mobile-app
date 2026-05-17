@@ -30,6 +30,7 @@ export default {
   tabs: {
     home: "Home",
     products: "Products",
+    sales: "Sales",
     transactions: "Transactions",
     settings: "Settings",
   },
@@ -64,7 +65,8 @@ export default {
     noResults: "No results found",
     roles: {
       client: "Client",
-      supplier: "Supplier"
+      supplier: "Supplier",
+      employee: "Employee"
     },
     sortBy: "Sort By",
     sortOrder: "Order",
@@ -269,7 +271,30 @@ export default {
     selectBranch: " Select a branch",
     created: "Transaction added",
     deleted: "Transaction deleted",
+    date: "Date",
+    detail: "Transaction Detail",
+    deleteTitle: "Delete Transaction",
     deleteConfirmation: "Are you sure you want to delete this transaction?",
     fillRequired: "Please fill in all required fields"
+  },
+  sales: {
+    title: "Sales",
+    createPosSale: "Create Sale",
+    tabs: {
+      all: "All",
+      completed: "Completed",
+      debt: "Debt",
+      cancelled: "Cancelled"
+    },
+    status: {
+      completed: "Completed",
+      debt: "Debt",
+      cancelled: "Cancelled",
+      unknown: "Unknown"
+    },
+    walkInCustomer: "Walk-in Customer",
+    noResults: "No sales found",
+    items_one: "{{count}} item",
+    items_other: "{{count}} items"
   }
 };
