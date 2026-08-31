@@ -20,9 +20,9 @@ import i18n from '@/i18n';
 import type { Language } from '@/types';
 
 const LANGUAGES: { label: string; value: Language }[] = [
-  { label: '🇺🇸 English', value: 'en' },
-  { label: "🇺🇿 O'zbekcha", value: 'uz' },
-  { label: '🇷🇺 Русский', value: 'ru' },
+  { label: 'English', value: 'en' },
+  { label: "O'zbekcha", value: 'uz' },
+  { label: 'Русский', value: 'ru' },
 ];
 
 export default function ProfileScreen() {

@@ -476,7 +476,13 @@ export default {
       currentPin: "Текущий PIN",
       currentPinSubtitle: "Введите текущий PIN, чтобы продолжить",
       wrongPin: "Неверный PIN",
-      noMatch: "PIN не совпал, попробуйте снова"
+      noMatch: "PIN не совпал, попробуйте снова",
+      lockedOut: "Слишком много попыток",
+      tryAgainIn: "Повторите через {{time}}",
+      attemptsRemaining_one: "Осталась {{count}} попытка",
+      attemptsRemaining_few: "Осталось {{count}} попытки",
+      attemptsRemaining_many: "Осталось {{count}} попыток",
+      attemptsRemaining_other: "Осталось {{count}} попыток"
     },
     sessions: {
       revoked: "Сеанс завершён",

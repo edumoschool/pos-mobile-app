@@ -119,7 +119,7 @@ export default function HomeScreen() {
       sortBy: clientSortBy,
       order: clientOrder
     }),
-    getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    getNextPageParam: (lastPage) => lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
   });
   const {
@@ -133,7 +133,7 @@ export default function HomeScreen() {
   } = useInfiniteQuery({
     queryKey: ['suppliers', searchQuery],
     queryFn: ({ pageParam = 1 }) => suppliersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
-    getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    getNextPageParam: (lastPage) => lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
     enabled: isManager,
   });
@@ -148,8 +148,8 @@ export default function HomeScreen() {
     isRefetching: isRefetchingUsers
   } = useInfiniteQuery({
     queryKey: ['users', searchQuery],
-    queryFn: ({ pageParam = 1 }) => usersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
-    getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    queryFn: ({ pageParam = 1 }) => usersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined, role: "seller" }),
+    getNextPageParam: (lastPage) => lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
     enabled: isManager,
   });

@@ -5,6 +5,7 @@ import { ScrollView } from '@/components/ui/scroll-view';
 import { Text } from '@/components/ui/text';
 import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
+import { useHaptics } from '@/hooks/useHaptics';
 import { BORDER_RADIUS, CORNERS, FONT_SIZE, HEIGHT } from '@/theme/globals';
 import {
   Calendar,
@@ -16,6 +17,19 @@ import {
   CalendarRange,
   ArrowRight,
 } from 'lucide-react-native';
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  isSameMonth,
+  isToday as isTodayFn,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
+} from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
 import { TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
 
@@ -69,6 +83,9 @@ const MONTHS = [
 ];
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Single-letter column headers keep the 7 columns narrow enough that the
+// circular day cells stay circular on small screens.
+const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 // Generate year range (current year ± 50 years)
 const currentYear = new Date().getFullYear();
@@ -88,6 +105,7 @@ const isDateRange = (
 };
 
 export function DatePicker(props: DatePickerProps) {
+  const feedback = useHaptics(true);
   const {
     label,
     error,
@@ -264,53 +282,31 @@ export function DatePicker(props: DatePickerProps) {
   );
 
   // Memoized calendar calculations
+  //
+  // Weeks are chunked explicitly rather than relying on `flexWrap`: flex-wrap
+  // breaks a row when it runs out of *width*, not after a fixed count, so it
+  // only lines up with the 7-column header by coincidence.
   const calendarData = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    const monthStart = startOfMonth(currentDate);
+    const days = eachDayOfInterval({
+      start: startOfWeek(monthStart),
+      end: endOfWeek(endOfMonth(currentDate)),
+    });
 
-    // Get first day of month and number of days
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    // Create calendar grid with proper positioning
-    const weeks: (number | null)[][] = [];
-    let currentWeek: (number | null)[] = [];
-
-    // Fill empty cells for days before month starts
-    for (let i = 0; i < firstDay; i++) {
-      currentWeek.push(null);
+    const weeks: Date[][] = [];
+    for (let i = 0; i < days.length; i += 7) {
+      weeks.push(days.slice(i, i + 7));
     }
 
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      currentWeek.push(day);
-
-      // If week is complete (7 days) or it's the last day, start a new week
-      if (currentWeek.length === 7) {
-        weeks.push([...currentWeek]);
-        currentWeek = [];
-      }
-    }
-
-    // Add the last incomplete week if it exists
-    if (currentWeek.length > 0) {
-      // Fill remaining cells with null
-      while (currentWeek.length < 7) {
-        currentWeek.push(null);
-      }
-      weeks.push(currentWeek);
-    }
-
-    return { weeks, year, month, daysInMonth };
+    return {
+      weeks,
+      year: currentDate.getFullYear(),
+      month: currentDate.getMonth(),
+      monthStart,
+    };
   }, [currentDate]);
 
-  const handleRangeSelect = (day: number) => {
-    const selectedDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      day
-    );
-
+  const handleRangeSelect = (selectedDate: Date) => {
     // Check if date is disabled
     if (isDateDisabled(selectedDate)) return;
 
@@ -340,16 +336,20 @@ export function DatePicker(props: DatePickerProps) {
     }
   };
 
-  const handleDateSelect = (day: number) => {
+  const handleDateSelect = (day: Date) => {
     if (mode === 'range') {
       handleRangeSelect(day);
       return;
     }
 
-    const newDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      day
+    // Carry the existing time across, so picking a day in datetime mode does
+    // not silently reset the hours already chosen.
+    const newDate = new Date(day);
+    newDate.setHours(
+      currentDate.getHours(),
+      currentDate.getMinutes(),
+      0,
+      0
     );
 
     // Check if date is disabled
@@ -372,13 +372,12 @@ export function DatePicker(props: DatePickerProps) {
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    if (direction === 'prev') {
-      newDate.setMonth(newDate.getMonth() - 1);
-    } else {
-      newDate.setMonth(newDate.getMonth() + 1);
-    }
-    setCurrentDate(newDate);
+    // addMonths/subMonths clamp to the last valid day instead of overflowing
+    // the way `setMonth` does (Jan 31 → Mar 3).
+    feedback('impact-light');
+    setCurrentDate((d) =>
+      direction === 'prev' ? subMonths(d, 1) : addMonths(d, 1)
+    );
   };
 
   const handleMonthSelect = (monthIndex: number) => {
@@ -519,9 +518,9 @@ export function DatePicker(props: DatePickerProps) {
           paddingHorizontal: 4,
         }}
       >
-        {DAYS.map((day) => (
+        {WEEKDAY_LABELS.map((day, i) => (
           <View
-            key={day}
+            key={i}
             style={{
               flex: 1,
               alignItems: 'center',
@@ -536,53 +535,40 @@ export function DatePicker(props: DatePickerProps) {
 
       {/* Calendar grid */}
       <View style={{ paddingHorizontal: 4 }}>
-        {calendarData.weeks.map((week, weekIndex) => (
+        {calendarData.weeks.map((week) => (
           <View
-            key={weekIndex}
-            style={{
-              flexDirection: 'row',
-              marginBottom: 4,
-            }}
+            key={week[0].toISOString()}
+            style={{ flexDirection: 'row', marginBottom: 4 }}
           >
-            {week.map((day, dayIndex) => {
-              const dayDate = day
-                ? new Date(calendarData.year, calendarData.month, day)
-                : null;
-
+            {week.map((dayDate) => {
+              const inMonth = isSameMonth(dayDate, calendarData.monthStart);
               const isSelected =
-                day &&
-                value &&
-                !isDateRange(value) &&
-                value.getDate() === day &&
-                value.getMonth() === calendarData.month &&
-                value.getFullYear() === calendarData.year;
-
-              const isToday =
-                day &&
-                new Date().getDate() === day &&
-                new Date().getMonth() === calendarData.month &&
-                new Date().getFullYear() === calendarData.year;
-
-              const disabled = dayDate ? isDateDisabled(dayDate) : false;
+                !!value && !isDateRange(value) && isSameDay(dayDate, value);
+              const isToday = isTodayFn(dayDate);
+              const disabled = isDateDisabled(dayDate);
 
               // Range-specific styling
-              const inRange = dayDate ? isDateInRange(dayDate) : false;
-              const rangeEndpoints = dayDate
-                ? isRangeEndpoint(dayDate)
-                : { isStart: false, isEnd: false };
+              const inRange = isDateInRange(dayDate);
+              const rangeEndpoints = isRangeEndpoint(dayDate);
+              const isEndpoint =
+                rangeEndpoints.isStart || rangeEndpoints.isEnd;
+
+              // The continuous range band sits on the cell, while the
+              // selected/endpoint pill sits on the circle inside it.
+              const filled = isEndpoint || isSelected;
 
               return (
                 <View
-                  key={dayIndex}
+                  key={dayDate.toISOString()}
                   style={[
                     {
                       flex: 1,
                       alignItems: 'center',
+                      justifyContent: 'center',
                       backgroundColor:
-                        mode === 'range' && inRange
-                          ? primaryColor
+                        mode === 'range' && inRange && !isEndpoint
+                          ? primaryColor + '22'
                           : 'transparent',
-                      paddingHorizontal: mode === 'range' && inRange ? 0 : 0,
                     },
                     rangeEndpoints.isStart && {
                       borderTopLeftRadius: CORNERS,
@@ -594,71 +580,45 @@ export function DatePicker(props: DatePickerProps) {
                     },
                   ]}
                 >
-                  {day ? (
-                    <TouchableOpacity
-                      onPress={() => !disabled && handleDateSelect(day)}
-                      disabled={disabled}
-                      style={[
-                        {
-                          width: 40,
-                          height: 40,
-                          borderRadius:
-                            rangeEndpoints.isStart || rangeEndpoints.isEnd
-                              ? 0
-                              : CORNERS,
-                          backgroundColor:
-                            rangeEndpoints.isStart || rangeEndpoints.isEnd
-                              ? primaryColor
-                              : inRange
-                              ? primaryColor
-                              : isSelected
-                              ? primaryColor
-                              : 'transparent',
-                          borderWidth:
-                            isToday && !isSelected && !inRange ? 1 : 0,
-                          borderColor: primaryColor,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          opacity: disabled ? 0.3 : 1,
-                        },
-                        rangeEndpoints.isStart && {
-                          borderTopLeftRadius: CORNERS,
-                          borderBottomLeftRadius: CORNERS,
-                        },
-                        rangeEndpoints.isEnd && {
-                          borderTopRightRadius: CORNERS,
-                          borderBottomRightRadius: CORNERS,
-                        },
-                      ]}
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (disabled) return;
+                      feedback('selection');
+                      handleDateSelect(dayDate);
+                    }}
+                    disabled={disabled}
+                    accessibilityRole='button'
+                    accessibilityState={{ selected: filled, disabled }}
+                    accessibilityLabel={format(dayDate, 'EEEE, d MMMM yyyy')}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 18,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      backgroundColor: filled ? primaryColor : 'transparent',
+                      borderWidth: isToday && !filled ? 1 : 0,
+                      borderColor: primaryColor,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: filled
+                          ? primaryForegroundColor
+                          : disabled || !inMonth
+                          ? mutedForegroundColor
+                          : textColor,
+                        // Adjacent-month days stay visible but recede, so the
+                        // grid reads as a continuous calendar rather than
+                        // blank cells at the edges.
+                        opacity: disabled ? 0.4 : inMonth ? 1 : 0.35,
+                        fontWeight: filled || isToday ? '600' : '400',
+                        fontSize: FONT_SIZE,
+                      }}
                     >
-                      <Text
-                        style={{
-                          color:
-                            rangeEndpoints.isStart || rangeEndpoints.isEnd
-                              ? primaryForegroundColor
-                              : inRange
-                              ? primaryForegroundColor
-                              : isSelected
-                              ? primaryForegroundColor
-                              : disabled
-                              ? mutedForegroundColor
-                              : textColor,
-                          fontWeight:
-                            rangeEndpoints.isStart ||
-                            rangeEndpoints.isEnd ||
-                            isSelected ||
-                            isToday
-                              ? '600'
-                              : '400',
-                          fontSize: FONT_SIZE,
-                        }}
-                      >
-                        {day}
-                      </Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <View style={{ width: 40, height: 40 }} />
-                  )}
+                      {format(dayDate, 'd')}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               );
             })}

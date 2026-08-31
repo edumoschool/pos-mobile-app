@@ -13,6 +13,7 @@ export default function SettingsLayout() {
     <Stack
       screenOptions={{
         headerLargeTitle: true,
+        headerShown: false,
         headerLargeTitleShadowVisible: false,
         headerTintColor: text,
         headerBlurEffect: isLiquidGlassAvailable()

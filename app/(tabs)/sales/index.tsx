@@ -61,7 +61,7 @@ export default function SalesScreen() {
       limit: 20,
       status: status === 'all' ? undefined : status,
     }),
-    getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    getNextPageParam: (lastPage) => lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
   });
 

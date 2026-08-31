@@ -4,15 +4,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
-import { Plus, Package } from 'lucide-react-native';
+import { Plus, Package, Check, ChevronDown } from 'lucide-react-native';
 import { FlashList } from '@shopify/flash-list';
-import { Picker } from '@react-native-picker/picker';
 
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
 import { categoriesApi, brandCategoriesApi } from '@/api/catalog';
 import { SearchBar } from '@/components/ui/searchbar';
+import { Popover, PopoverBody, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Header } from '@/components/ui/header';
 import { formatAmount } from '@/lib/utils';
 import { Product } from '@/types';
@@ -65,12 +65,12 @@ export default function ProductsScreen() {
         brandCategoryId: selectedBrandCategory || undefined
       }),
     getNextPageParam: (lastPage) =>
-      lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+      lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
   });
 
   const products = productsData?.pages.flatMap((page) => page.data) || [];
-  const totalCount = productsData?.pages[0]?.meta.total ?? 0;
+  const totalCount = productsData?.pages[0]?.meta?.total ?? products.length;
 
   useEffect(() => {
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
@@ -124,41 +124,20 @@ export default function ProductsScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Pickers Row */}
+        {/* Filter Row */}
         <View style={{ flexDirection: 'row', paddingHorizontal: 16, gap: 12, marginBottom: 12 }}>
-          {/* Category Filter */}
-          <View style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, justifyContent: 'center' }}>
-            <Picker
-              selectedValue={selectedCategory || ''}
-              onValueChange={(itemValue) => setSelectedCategory(itemValue === '' ? null : itemValue)}
-              style={{ color: text }}
-              itemStyle={{ height: 40, fontSize: 14 }}
-              dropdownIconColor={text}
-              mode="dropdown"
-            >
-              <Picker.Item label={t('products.allCategories')} value="" />
-              {categories?.map((cat) => (
-                <Picker.Item key={cat.id} label={cat.name} value={cat.id} />
-              ))}
-            </Picker>
-          </View>
-
-          {/* Brand Category Filter */}
-          <View style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: card, justifyContent: 'center' }}>
-            <Picker
-              selectedValue={selectedBrandCategory || ''}
-              onValueChange={(itemValue) => setSelectedBrandCategory(itemValue === '' ? null : itemValue)}
-              style={{ color: text}}
-              itemStyle={{ height: 40, fontSize: 14 }}
-              dropdownIconColor={text}
-              mode="dropdown"
-            >
-              <Picker.Item label={t('products.allBrands')} value="" />
-              {brandCategories?.map((brand) => (
-                <Picker.Item key={brand.id} label={brand.name} value={brand.id} />
-              ))}
-            </Picker>
-          </View>
+          <FilterSelect
+            label={t('products.allCategories')}
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            options={categories?.map((c) => ({ label: c.name, value: c.id })) ?? []}
+          />
+          <FilterSelect
+            label={t('products.allBrands')}
+            value={selectedBrandCategory}
+            onChange={setSelectedBrandCategory}
+            options={brandCategories?.map((b) => ({ label: b.name, value: b.id })) ?? []}
+          />
         </View>
       </View>
 
@@ -265,6 +244,118 @@ export default function ProductsScreen() {
           />
         )}
       </View>
+    </View>
+  );
+}
+
+/**
+ * Dropdown filter built on Popover.
+ *
+ * Replaces the platform Picker, which rendered as an inline iOS wheel and an
+ * unstyleable Android dialog — neither of which could show the selected state
+ * or match the surrounding controls. Selecting an already-selected option
+ * clears the filter, so "all" needs no separate row.
+ */
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string | null;
+  onChange: (next: string | null) => void;
+  options: { label: string; value: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const card = useColor('card');
+  const border = useColor('border');
+  const text = useColor('text');
+  const muted = useColor('textMuted');
+  const primary = useColor('primary');
+
+  const selected = options.find((o) => o.value === value);
+  const active = !!selected;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={{
+              height: 40,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: active ? primary : border,
+              backgroundColor: active ? primary + '14' : card,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 12,
+              gap: 6,
+            }}
+          >
+            <Text
+              numberOfLines={1}
+              style={{
+                flex: 1,
+                fontSize: 14,
+                fontWeight: active ? '600' : '400',
+                color: active ? primary : muted,
+              }}
+            >
+              {selected?.label ?? label}
+            </Text>
+            <ChevronDown size={16} color={active ? primary : muted} />
+          </TouchableOpacity>
+        </PopoverTrigger>
+
+        <PopoverContent align="start" maxWidth={260} style={{ padding: 0 }}>
+          <PopoverBody style={{ padding: 6 }} maxHeight={280}>
+            {options.length === 0 ? (
+              <Text style={{ fontSize: 13, color: muted, padding: 12 }}>—</Text>
+            ) : (
+              options.map((opt) => {
+                const isSelected = opt.value === value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      onChange(isSelected ? null : opt.value);
+                      setOpen(false);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      borderRadius: 8,
+                      backgroundColor: isSelected ? primary + '14' : 'transparent',
+                    }}
+                  >
+                    <Text
+                      numberOfLines={1}
+                      style={{
+                        flex: 1,
+                        fontSize: 14,
+                        color: isSelected ? primary : text,
+                        fontWeight: isSelected ? '600' : '400',
+                      }}
+                    >
+                      {opt.label}
+                    </Text>
+                    {isSelected && <Check size={16} color={primary} />}
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </PopoverBody>
+        </PopoverContent>
+      </Popover>
     </View>
   );
 }

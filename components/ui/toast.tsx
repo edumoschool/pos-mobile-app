@@ -76,6 +76,8 @@ export function Toast({
   const errorColor = useColor('red');
   const warningColor = useColor('orange');
   const infoColor = useColor('blue');
+  const textColor = useColor('text');
+  const primaryForegroundColor = useColor('primaryForeground');
 
   // Slide down + fade in on mount
   useEffect(() => {
@@ -118,6 +120,8 @@ export function Toast({
   };
 
   const getIcon = () => {
+    // The icon sits on the white badge, so it carries the variant color
+    // while the surrounding toast is filled with it.
     const iconProps = { size: 18, color: getVariantColor() };
     switch (variant) {
       case 'success':
@@ -132,6 +136,13 @@ export function Toast({
         return null;
     }
   };
+
+  // `default` keeps the neutral card surface; every other variant fills with
+  // its status color and switches the text to white for contrast.
+  const isFilled = variant !== 'default';
+  const surfaceColor = isFilled ? getVariantColor() : backgroundColor;
+  const onSurfaceColor = isFilled ? '#FFFFFF' : textColor;
+  const onSurfaceMutedColor = isFilled ? 'rgba(255,255,255,0.85)' : mutedTextColor;
 
   // Swipe horizontally to dismiss
   const panGesture = Gesture.Pan()
@@ -173,7 +184,7 @@ export function Toast({
     top: topPosition,
     left: 16,
     right: 16,
-    backgroundColor,
+    backgroundColor: surfaceColor,
     borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 13,
@@ -191,7 +202,19 @@ export function Toast({
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[toastStyle, animatedStyle]}>
         {getIcon() && (
-          <View style={{ marginRight: 12 }}>{getIcon()}</View>
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: '#FFFFFF',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: 12,
+            }}
+          >
+            {getIcon()}
+          </View>
         )}
 
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -199,7 +222,7 @@ export function Toast({
             <Text
               variant='subtitle'
               style={{
-                color: useColor('text'),
+                color: onSurfaceColor,
                 fontSize: 15,
                 fontWeight: '600',
                 marginBottom: description ? 2 : 0,
@@ -214,7 +237,7 @@ export function Toast({
             <Text
               variant='caption'
               style={{
-                color: mutedTextColor,
+                color: onSurfaceMutedColor,
                 fontSize: 13,
                 fontWeight: '400',
               }}
@@ -233,13 +256,13 @@ export function Toast({
               marginLeft: 12,
               paddingHorizontal: 12,
               paddingVertical: 6,
-              backgroundColor: getVariantColor(),
+              backgroundColor: isFilled ? '#FFFFFF' : getVariantColor(),
               borderRadius: 10,
             }}
           >
             <Text
               variant='caption'
-              style={{ color: useColor('primaryForeground'), fontSize: 12, fontWeight: '600' }}
+              style={{ color: isFilled ? getVariantColor() : primaryForegroundColor, fontSize: 12, fontWeight: '600' }}
             >
               {action.label}
             </Text>
@@ -250,7 +273,7 @@ export function Toast({
           onPress={dismiss}
           style={{ marginLeft: 8, padding: 4, borderRadius: 8 }}
         >
-          <X size={14} color={mutedTextColor} />
+          <X size={14} color={onSurfaceMutedColor} />
         </TouchableOpacity>
       </Animated.View>
     </GestureDetector>

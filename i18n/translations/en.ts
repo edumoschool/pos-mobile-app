@@ -474,7 +474,11 @@ export default {
       currentPin: "Current PIN",
       currentPinSubtitle: "Enter your current PIN to continue",
       wrongPin: "Incorrect PIN",
-      noMatch: "PINs didn't match, try again"
+      noMatch: "PINs didn't match, try again",
+      lockedOut: "Too many attempts",
+      tryAgainIn: "Try again in {{time}}",
+      attemptsRemaining_one: "{{count}} attempt remaining",
+      attemptsRemaining_other: "{{count}} attempts remaining"
     },
     sessions: {
       revoked: "Session revoked",

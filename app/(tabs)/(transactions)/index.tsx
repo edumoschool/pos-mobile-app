@@ -70,7 +70,7 @@ export default function TransactionsScreen() {
         limit: 30,
       }),
     getNextPageParam: (last) =>
-      last.meta.page < last.meta.totalPages ? last.meta.page + 1 : undefined,
+      last.meta && last.meta.page < last.meta.totalPages ? last.meta.page + 1 : undefined,
     initialPageParam: 1,
   });
 

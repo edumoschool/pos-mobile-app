@@ -24,9 +24,9 @@ import { useTranslation } from 'react-i18next';
 
 type Language = 'en' | 'uz' | 'ru';
 const LANGUAGES: { value: Language; label: string }[] = [
-  { value: 'en', label: '🇺🇸 English' },
-  { value: 'uz', label: '🇺🇿 O\'zbekcha' },
-  { value: 'ru', label: '🇷🇺 Русский' },
+  { value: 'en', label: 'English' },
+  { value: 'uz', label: 'O\'zbekcha' },
+  { value: 'ru', label: 'Русский' },
 ];
 
 export default function RegisterScreen() {

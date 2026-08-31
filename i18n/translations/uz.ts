@@ -474,7 +474,11 @@ export default {
       currentPin: "Joriy PIN",
       currentPinSubtitle: "Davom etish uchun joriy PINni kiriting",
       wrongPin: "Noto'g'ri PIN",
-      noMatch: "PIN mos kelmadi, qayta urinib ko'ring"
+      noMatch: "PIN mos kelmadi, qayta urinib ko'ring",
+      lockedOut: "Juda ko'p urinish",
+      tryAgainIn: "{{time}} dan keyin urinib ko'ring",
+      attemptsRemaining_one: "{{count}} urinish qoldi",
+      attemptsRemaining_other: "{{count}} urinish qoldi"
     },
     sessions: {
       revoked: "Seans tugatildi",

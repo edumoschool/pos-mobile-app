@@ -50,7 +50,7 @@ export default function InventoryScreen() {
     queryKey: ['inventory'],
     queryFn: ({ pageParam = 1 }) => inventoryApi.getAll({ page: pageParam, limit: 20 }),
     getNextPageParam: (lastPage) =>
-      lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+      lastPage.meta && lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
     enabled: canView && !lowStockOnly,
   });
@@ -69,7 +69,9 @@ export default function InventoryScreen() {
   const items: Inventory[] = lowStockOnly
     ? lowStockData?.data ?? []
     : data?.pages.flatMap((p) => p.data) ?? [];
-  const total = lowStockOnly ? lowStockData?.meta.total ?? 0 : data?.pages[0]?.meta.total ?? 0;
+  const total = lowStockOnly
+    ? lowStockData?.meta?.total ?? lowStockData?.data?.length ?? 0
+    : data?.pages[0]?.meta?.total ?? items.length;
   const isLoading = lowStockOnly ? isLoadingLowStock : isLoadingAll;
   const isRefetching = lowStockOnly ? isRefetchingLowStock : isRefetchingAll;
   const refetch = lowStockOnly ? refetchLowStock : refetchAll;

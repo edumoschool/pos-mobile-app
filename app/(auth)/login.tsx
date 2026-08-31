@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { useToast } from '@/components/ui/toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useColor } from '@/hooks/useColor';
 import { getApiErrorMessage } from '@/api/client';
@@ -17,35 +18,32 @@ export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { error: showError } = useToast();
 
   // Theme
   const bg = useColor('background');
   const primary = useColor('primary');
   const muted = useColor('textMuted');
-  const card = useColor('card');
-  const red = useColor('red');
 
   // State
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   // Refs
   const passwordRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
-    setError('');
-    if (!phone.trim()) { setError(t('auth.errors.phoneRequired')); return; }
-    if (!password.trim()) { setError(t('auth.errors.passwordRequired')); return; }
-    if (password.length < 6) { setError(t('auth.errors.passwordLength')); return; }
+    if (!phone.trim()) { showError(t('common.error'), t('auth.errors.phoneRequired')); return; }
+    if (!password.trim()) { showError(t('common.error'), t('auth.errors.passwordRequired')); return; }
+    if (password.length < 6) { showError(t('common.error'), t('auth.errors.passwordLength')); return; }
 
     setLoading(true);
     try {
       await login(phone.trim(), password);
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      showError(t('common.error'), getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -129,23 +127,6 @@ export default function LoginScreen() {
             )}
           />
         </View>
-
-        {/* ── Error ───────────────────────────────────────────────── */}
-        {!!error && (
-          <View
-            style={{
-              backgroundColor: red + '15',
-              borderRadius: 12,
-              paddingHorizontal: 16,
-              paddingVertical: 12,
-              marginBottom: 20,
-            }}
-          >
-            <Text style={{ color: red, fontSize: 15, fontWeight: '500' }}>
-              {error}
-            </Text>
-          </View>
-        )}
 
         {/* ── Submit ──────────────────────────────────────────────── */}
         <Button
