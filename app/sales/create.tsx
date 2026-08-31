@@ -409,7 +409,6 @@ export default function CreateSaleScreen() {
             <Switch
               value={fullyPaid}
               onValueChange={setFullyPaid}
-              trackColor={{ true: primary }}
             />
           </View>
 

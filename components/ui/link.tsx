@@ -1,15 +1,15 @@
 import { Text } from '@/components/ui/text';
-import { Link as ERLink, Href, useRouter } from 'expo-router';
+import { Link as ERLink, Href } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import { type ComponentProps } from 'react';
 import { Linking, Platform } from 'react-native';
 
-type Props = Omit<ComponentProps<typeof ERLink>, 'href'> & {
+export interface LinkProps extends Omit<ComponentProps<typeof ERLink>, 'href'> {
   href: Href;
   asChild?: boolean;
   browser?: 'in-app' | 'external';
   children: React.ReactNode;
-};
+}
 
 // Helper function to determine if URL is external
 const isExternalUrl = (href: Href): boolean => {
@@ -58,7 +58,7 @@ export function Link({
   children,
   browser = 'in-app',
   ...rest
-}: Props) {
+}: LinkProps) {
   const isExternal = isExternalUrl(href);
 
   const handlePress = async (event: any) => {
@@ -128,11 +128,7 @@ export function Link({
 
   // For internal links, use ERLink directly without custom onPress
   return (
-    <ERLink
-      asChild={typeof children === 'string' ? false : true}
-      href={href}
-      {...rest}
-    >
+    <ERLink asChild={asChild} href={href} {...rest}>
       {typeof children === 'string' ? (
         <Text variant='link'>{children}</Text>
       ) : (

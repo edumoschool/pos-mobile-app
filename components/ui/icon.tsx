@@ -6,6 +6,8 @@ export type Props = LucideProps & {
   lightColor?: string;
   darkColor?: string;
   name: React.ComponentType<LucideProps>;
+  /** Icons are decorative by default; set true to expose to screen readers. */
+  accessible?: boolean;
 };
 
 export function Icon({
@@ -15,6 +17,7 @@ export function Icon({
   color,
   size = 24,
   strokeWidth = 1.8,
+  accessible = false,
   ...rest
 }: Props) {
   const themedColor = useColor('icon', { light: lightColor, dark: darkColor });
@@ -28,6 +31,11 @@ export function Icon({
       size={size}
       strokeWidth={strokeWidth}
       strokeLinecap='round'
+      // Icons are decorative by default, so hide them from screen readers
+      // unless a caller opts in. `accessible` is not an SVG prop, so it is
+      // translated to the RN accessibility props rather than forwarded.
+      accessibilityElementsHidden={!accessible}
+      importantForAccessibility={accessible ? 'yes' : 'no-hide-descendants'}
       {...rest}
     />
   );

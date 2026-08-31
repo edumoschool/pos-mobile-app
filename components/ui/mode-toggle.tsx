@@ -4,6 +4,7 @@ import { useModeToggle } from '@/hooks/useModeToggle';
 import { Moon, Sun } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import Animated, {
+  cancelAnimation,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -13,9 +14,14 @@ import Animated, {
 type Props = {
   variant?: ButtonVariant;
   size?: ButtonSize;
+  haptic?: boolean;
 };
 
-export const ModeToggle = ({ variant = 'outline', size = 'icon' }: Props) => {
+export const ModeToggle = ({
+  variant = 'outline',
+  size = 'icon',
+  haptic = true,
+}: Props) => {
   const { toggleMode, isDark } = useModeToggle();
   const rotation = useSharedValue(0);
   const scale = useSharedValue(1);
@@ -24,14 +30,21 @@ export const ModeToggle = ({ variant = 'outline', size = 'icon' }: Props) => {
   );
 
   useEffect(() => {
+    // Cancel any in-flight animation from a previous toggle first — without
+    // this, rapid toggling stacks up overlapping completion callbacks that
+    // each restart the chain, which can blow the JS call stack.
+    cancelAnimation(scale);
+
     // Animate icon change
-    scale.value = withTiming(0, { duration: 150 }, () => {
+    scale.value = withTiming(0, { duration: 150 }, (finished?: boolean) => {
+      if (!finished) return;
       runOnJS(setShowIcon)(isDark ? 'moon' : 'sun');
       scale.value = withTiming(1, { duration: 150 });
     });
 
     // Only rotate when switching to sun (sun rays spinning effect)
     if (!isDark) {
+      cancelAnimation(rotation);
       rotation.value = withTiming(rotation.value + 180, { duration: 300 });
     }
   }, [isDark]);
@@ -46,7 +59,14 @@ export const ModeToggle = ({ variant = 'outline', size = 'icon' }: Props) => {
   });
 
   return (
-    <Button variant={variant} size={size} onPress={toggleMode}>
+    <Button
+      variant={variant}
+      size={size}
+      onPress={toggleMode}
+      haptic={haptic}
+      accessibilityRole='button'
+      accessibilityLabel={`Switch to ${isDark ? 'light' : 'dark'} theme`}
+    >
       <Animated.View style={animatedStyle}>
         <Icon name={showIcon === 'moon' ? Moon : Sun} size={24} />
       </Animated.View>

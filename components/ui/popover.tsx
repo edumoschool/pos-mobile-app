@@ -1,11 +1,11 @@
 import { Button } from '@/components/ui/button';
+import { ScrollView } from '@/components/ui/scroll-view';
 import { useColor } from '@/hooks/useColor';
 import { BORDER_RADIUS } from '@/theme/globals';
 import React, {
   createContext,
   ReactNode,
   useContext,
-  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -57,10 +57,14 @@ export function Popover({
     height: 0,
   });
 
-  // Sync with external open state
-  useEffect(() => {
+  // Sync with external `open` prop — adjusted during render (guarded by
+  // comparing against its previous value) rather than in an effect, so a
+  // controlled close/open never costs an extra render pass.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     setIsOpenState(open);
-  }, [open]);
+  }
 
   const setIsOpen = (newOpen: boolean) => {
     setIsOpenState(newOpen);
@@ -123,12 +127,20 @@ export function PopoverTrigger({
     return React.cloneElement(children, {
       ref: triggerRef,
       onPress: handlePress,
+      accessibilityRole: 'button',
+      accessibilityState: { expanded: isOpen },
       style: [(children.props as any).style, style],
     } as any);
   }
 
   return (
-    <Button ref={triggerRef} style={style} onPress={handlePress}>
+    <Button
+      ref={triggerRef}
+      style={style}
+      onPress={handlePress}
+      accessibilityRole='button'
+      accessibilityState={{ expanded: isOpen }}
+    >
       {children}
     </Button>
   );
@@ -330,6 +342,8 @@ export function PopoverContent({
           ]}
           onLayout={handleContentLayout}
           onStartShouldSetResponder={() => true}
+          accessibilityViewIsModal
+          accessibilityRole='menu'
         >
           {children}
         </View>
@@ -358,10 +372,20 @@ export function PopoverHeader({ children, style }: PopoverHeaderProps) {
 interface PopoverBodyProps {
   children: ReactNode;
   style?: ViewStyle;
+  /** caps how tall the scrollable body can grow before it scrolls */
+  maxHeight?: number;
 }
 
-export function PopoverBody({ children, style }: PopoverBodyProps) {
-  return <View style={[styles.body, style]}>{children}</View>;
+export function PopoverBody({ children, style, maxHeight = 320 }: PopoverBodyProps) {
+  return (
+    <ScrollView
+      style={{ maxHeight }}
+      contentContainerStyle={[styles.body, style]}
+      showsVerticalScrollIndicator={false}
+    >
+      {children}
+    </ScrollView>
+  );
 }
 
 // Popover Footer
@@ -400,18 +424,19 @@ export function PopoverClose({
 
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children, {
-      onPress: (e: any) => {
-        if ((children.props as any).onPress) {
-          (children.props as any).onPress(e);
-        }
-        handlePress();
-      },
+      onPress: handlePress,
+      accessibilityRole: 'button',
       style: [(children.props as any).style, style],
     } as any);
   }
 
   return (
-    <TouchableOpacity style={style} onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={style}
+      onPress={handlePress}
+      activeOpacity={0.7}
+      accessibilityRole='button'
+    >
       {children}
     </TouchableOpacity>
   );
@@ -420,7 +445,7 @@ export function PopoverClose({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   content: {
     position: 'absolute',

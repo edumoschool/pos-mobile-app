@@ -26,7 +26,7 @@ interface SpinnerProps {
   showLabel?: boolean;
   style?: ViewStyle;
   color?: string;
-  thickness?: number; // Note: thickness is not used in the original component logic
+  thickness?: number; // Only affects the 'circle' variant's stroke width
   speed?: 'slow' | 'normal' | 'fast';
 }
 
@@ -117,6 +117,7 @@ export function Spinner({
   showLabel = false,
   style,
   color,
+  thickness,
   speed = 'normal',
 }: SpinnerProps) {
   // Reanimated shared values
@@ -250,7 +251,11 @@ export function Spinner({
               animatedCircleStyle,
             ]}
           >
-            <Loader2 size={config.iconSize} color={spinnerColor} />
+            <Loader2
+              size={config.iconSize}
+              color={spinnerColor}
+              strokeWidth={thickness ?? config.thickness}
+            />
           </Animated.View>
         );
 
@@ -311,7 +316,11 @@ export function Spinner({
   };
 
   return (
-    <View style={[containerStyle, style]}>
+    <View
+      style={[containerStyle, style]}
+      accessibilityRole='progressbar'
+      accessibilityLabel={label || 'Loading'}
+    >
       {renderSpinner()}
       {(showLabel || label) && (
         <Text
@@ -442,7 +451,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 9999,

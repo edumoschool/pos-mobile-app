@@ -1,82 +1,41 @@
-import { Text } from '@/components/ui/text';
-import { View } from '@/components/ui/view';
+import { Icon } from '@/components/ui/icon';
 import { useColor } from '@/hooks/useColor';
-import { BORDER_RADIUS } from '@/theme/globals';
+import { useHaptics } from '@/hooks/useHaptics';
 import { Check } from 'lucide-react-native';
-import React from 'react';
-import { TextStyle, TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 
 interface CheckboxProps {
   checked: boolean;
-  label?: string;
-  error?: string;
-  disabled?: boolean;
-  labelStyle?: TextStyle;
-  onCheckedChange: (checked: boolean) => void;
+  onChange: (checked: boolean) => void;
+  size?: number;
 }
 
-export function Checkbox({
-  checked,
-  error,
-  disabled = false,
-  label,
-  labelStyle,
-  onCheckedChange,
-}: CheckboxProps) {
+export function Checkbox({ checked, onChange, size = 24 }: CheckboxProps) {
+  const feedback = useHaptics(true);
   const primary = useColor('primary');
-  const primaryForegroundColor = useColor('primaryForeground');
-  const danger = useColor('red');
-  const borderColor = useColor('border');
+  const primaryForeground = useColor('primaryForeground');
+  const border = useColor('border');
 
   return (
-    <TouchableOpacity
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        opacity: disabled ? 0.5 : 1,
-        paddingVertical: 4,
+    <Pressable
+      onPress={() => {
+        feedback(checked ? 'toggle-off' : 'toggle-on');
+        onChange(!checked);
       }}
-      onPress={() => !disabled && onCheckedChange(!checked)}
-      disabled={disabled}
+      accessibilityRole='checkbox'
+      accessibilityState={{ checked }}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.28,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: checked ? primary : 'transparent',
+        borderWidth: checked ? 0 : 1.5,
+        borderColor: border,
+      }}
     >
-      <View
-        style={{
-          width: BORDER_RADIUS,
-          height: BORDER_RADIUS,
-          borderRadius: BORDER_RADIUS,
-          borderWidth: 1.5,
-          borderColor: checked ? primary : borderColor,
-          backgroundColor: checked ? primary : 'transparent',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: label ? 8 : 0,
-        }}
-      >
-        {checked && (
-          <Check
-            size={16}
-            color={primaryForegroundColor}
-            strokeWidth={3}
-            strokeLinecap='round'
-          />
-        )}
-      </View>
-      {label && (
-        <Text
-          variant='caption'
-          numberOfLines={1}
-          ellipsizeMode='tail'
-          style={[
-            {
-              color: error ? danger : primary,
-            },
-            labelStyle,
-          ]}
-          pointerEvents='none'
-        >
-          {label}
-        </Text>
-      )}
-    </TouchableOpacity>
+      {checked && <Icon name={Check} size={size * 0.65} color={primaryForeground} strokeWidth={3} />}
+    </Pressable>
   );
 }

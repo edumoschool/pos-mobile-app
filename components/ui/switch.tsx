@@ -1,78 +1,73 @@
 import { useColor } from '@/hooks/useColor';
-import React from 'react';
+import { useHaptics } from '@/hooks/useHaptics';
+import { useEffect } from 'react';
+import { Pressable } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { Text } from '@/components/ui/text';
-import { View } from '@/components/ui/view';
-import {
-  Switch as RNSwitch,
-  SwitchProps as RNSwitchProps,
-  TextStyle,
-} from 'react-native';
-
-interface SwitchProps extends RNSwitchProps {
-  label?: string;
-  error?: string;
-  labelStyle?: TextStyle;
+interface SwitchProps {
+  value: boolean;
+  onValueChange: (value: boolean) => void;
+  disabled?: boolean;
 }
 
-export function Switch({ label, error, labelStyle, ...props }: SwitchProps) {
-  const mutedColor = useColor('muted');
+const WIDTH = 48;
+const HEIGHT = 28;
+const THUMB = 22;
+const PADDING = 3;
+
+export function Switch({ value, onValueChange, disabled }: SwitchProps) {
+  const feedback = useHaptics(true);
   const primary = useColor('primary');
-  const danger = useColor('red');
+  const track = useColor('border');
+  const thumbColor = useColor('primaryForeground');
+
+  const progress = useSharedValue(value ? 1 : 0);
+  useEffect(() => {
+    progress.value = withTiming(value ? 1 : 0, { duration: 150 });
+  }, [value, progress]);
+
+  const trackStyle = useAnimatedStyle(() => ({
+    backgroundColor: progress.value > 0.5 ? primary : track,
+  }));
+  const thumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: progress.value * (WIDTH - THUMB - PADDING * 2) }],
+  }));
 
   return (
-    <View style={{ marginBottom: 8 }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          minHeight: 32, // Ensure consistent height
-        }}
+    <Pressable
+      disabled={disabled}
+      onPress={() => {
+        feedback(value ? 'toggle-off' : 'toggle-on');
+        onValueChange(!value);
+      }}
+      accessibilityRole='switch'
+      accessibilityState={{ checked: value, disabled }}
+      style={{ opacity: disabled ? 0.5 : 1 }}
+    >
+      <Animated.View
+        style={[
+          {
+            width: WIDTH,
+            height: HEIGHT,
+            borderRadius: HEIGHT / 2,
+            padding: PADDING,
+            justifyContent: 'center',
+          },
+          trackStyle,
+        ]}
       >
-        {label && (
-          <Text
-            variant='caption'
-            numberOfLines={2} // Allow wrapping for longer labels
-            ellipsizeMode='tail'
-            style={[
-              {
-                color: error ? danger : primary,
-                flex: 1, // Take available space
-                marginRight: 12, // Add spacing between label and switch
-              },
-              labelStyle,
-            ]}
-            pointerEvents='none'
-          >
-            {label}
-          </Text>
-        )}
-
-        <RNSwitch
-          trackColor={{ false: mutedColor, true: '#7DD87D' }}
-          thumbColor={props.value ? '#ffffff' : '#f4f3f4'}
-          {...props}
-        />
-      </View>
-
-      {error && (
-        <Text
-          variant='caption'
-          numberOfLines={2}
-          ellipsizeMode='tail'
+        <Animated.View
           style={[
             {
-              fontSize: 12, // Slightly smaller for error text
-              color: danger, // Always use danger color for errors
-              marginTop: 4, // Add spacing above error text
+              width: THUMB,
+              height: THUMB,
+              borderRadius: THUMB / 2,
+              backgroundColor: thumbColor,
             },
+            thumbStyle,
           ]}
-          pointerEvents='none'
-        >
-          {error}
-        </Text>
-      )}
-    </View>
+        />
+      </Animated.View>
+    </Pressable>
   );
 }

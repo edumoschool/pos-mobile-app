@@ -1,32 +1,32 @@
 import { Text } from '@/components/ui/text';
 import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
+import { useHaptics } from '@/hooks/useHaptics';
 import { BORDER_RADIUS, CORNERS, FONT_SIZE, HEIGHT } from '@/theme/globals';
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import {
-  Dimensions,
   ScrollView,
   TextStyle,
   TouchableOpacity,
+  useWindowDimensions,
   ViewStyle,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  Extrapolate,
+  Extrapolation,
   interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-
-const { width: screenWidth } = Dimensions.get('window');
 
 // Types
 interface TabsContextType {
@@ -38,6 +38,8 @@ interface TabsContextType {
   unregisterTab: (value: string) => void;
   enableSwipe?: boolean;
   navigateToAdjacentTab?: (direction: 'next' | 'prev') => void;
+  contentMap: React.MutableRefObject<Record<string, React.ReactNode>>;
+  haptic?: boolean;
 }
 
 interface TabsProps {
@@ -48,6 +50,7 @@ interface TabsProps {
   orientation?: 'horizontal' | 'vertical';
   style?: ViewStyle;
   enableSwipe?: boolean;
+  haptic?: boolean;
 }
 
 interface TabsListProps {
@@ -88,9 +91,14 @@ export function Tabs({
   orientation = 'horizontal',
   style,
   enableSwipe = true,
+  haptic = true,
 }: TabsProps) {
+  const feedback = useHaptics(haptic);
   const [internalActiveTab, setInternalActiveTab] = useState(defaultValue);
   const [tabValues, setTabValues] = useState<string[]>([]);
+  // Per-instance carousel content cache — must live here (not module scope)
+  // so two mounted Tabs never share/corrupt each other's content.
+  const contentMap = useRef<Record<string, React.ReactNode>>({});
 
   // Determine if we're in controlled or uncontrolled mode
   const isControlled = value !== undefined;
@@ -144,10 +152,15 @@ export function Tabs({
 
       const nextTab = tabValues[nextIndex];
       if (nextTab) {
+        // Fires here rather than in the pan gesture's onEnd, which is a worklet
+        // on the UI thread — this runs on JS via the existing runOnJS hop. It
+        // is also not in setActiveTab, which programmatic/controlled updates
+        // also go through.
+        feedback('selection');
         setActiveTab(nextTab);
       }
     },
-    [tabValues, activeTab, setActiveTab]
+    [tabValues, activeTab, setActiveTab, feedback]
   );
 
   return (
@@ -161,6 +174,8 @@ export function Tabs({
         unregisterTab,
         enableSwipe,
         navigateToAdjacentTab,
+        contentMap,
+        haptic,
       }}
     >
       <View
@@ -184,18 +199,18 @@ interface CarouselTabContentProps {
   style?: ViewStyle;
 }
 
-// Add a ref to track all content components
-let allTabContents: { [key: string]: React.ReactNode } = {};
-
 function CarouselTabContent({
   children,
   value,
   style,
 }: CarouselTabContentProps) {
-  const { activeTab, navigateToAdjacentTab, tabValues } = useTabsContext();
+  const { activeTab, navigateToAdjacentTab, tabValues, contentMap } =
+    useTabsContext();
 
-  // Store this content
-  allTabContents[value] = children;
+  // Store this content in the per-instance map (mutation during render,
+  // matching the ref's intended "always current on next read" semantics —
+  // must not trigger a re-render on write).
+  contentMap.current[value] = children;
 
   // Only render the carousel container for the active tab
   if (activeTab !== value) {
@@ -207,6 +222,7 @@ function CarouselTabContent({
       activeTab={activeTab}
       tabValues={tabValues}
       onSwipe={navigateToAdjacentTab!}
+      contentMap={contentMap}
       style={style}
     />
   );
@@ -216,13 +232,16 @@ function CarouselContainer({
   activeTab,
   tabValues,
   onSwipe,
+  contentMap,
   style,
 }: {
   activeTab: string;
   tabValues: string[];
   onSwipe: (direction: 'next' | 'prev') => void;
+  contentMap: React.MutableRefObject<Record<string, React.ReactNode>>;
   style?: ViewStyle;
 }) {
+  const { width: screenWidth } = useWindowDimensions();
   const translateX = useSharedValue(0);
   const isGestureActive = useSharedValue(false);
   const currentIndex = tabValues.indexOf(activeTab);
@@ -287,7 +306,7 @@ function CarouselContainer({
       translateX.value,
       [0, screenWidth * 0.5],
       [0, 1],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     );
 
     return {
@@ -301,7 +320,7 @@ function CarouselContainer({
       translateX.value,
       [-screenWidth * 0.5, 0],
       [1, 0],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     );
 
     return {
@@ -327,7 +346,7 @@ function CarouselContainer({
             ]}
             pointerEvents='none'
           >
-            {allTabContents[previousTab]}
+            {contentMap.current[previousTab]}
           </Animated.View>
         )}
 
@@ -341,7 +360,7 @@ function CarouselContainer({
             containerStyle,
           ]}
         >
-          {allTabContents[activeTab]}
+          {contentMap.current[activeTab]}
         </Animated.View>
 
         {/* Next content */}
@@ -358,7 +377,7 @@ function CarouselContainer({
             ]}
             pointerEvents='none'
           >
-            {allTabContents[nextTab]}
+            {contentMap.current[nextTab]}
           </Animated.View>
         )}
       </View>
@@ -372,6 +391,7 @@ export function TabsList({ children, style }: TabsListProps) {
 
   return (
     <View
+      accessibilityRole='tablist'
       style={[
         {
           padding: 6,
@@ -403,9 +423,16 @@ export function TabsTrigger({
   style,
   textStyle,
 }: TabsTriggerProps) {
-  const { activeTab, setActiveTab, orientation, registerTab, unregisterTab } =
-    useTabsContext();
+  const {
+    activeTab,
+    setActiveTab,
+    orientation,
+    registerTab,
+    unregisterTab,
+    haptic,
+  } = useTabsContext();
   const isActive = activeTab === value;
+  const feedback = useHaptics(haptic ?? true);
 
   // Register/unregister tab for swipe navigation
   useEffect(() => {
@@ -419,6 +446,7 @@ export function TabsTrigger({
 
   const handlePress = () => {
     if (!disabled) {
+      if (!isActive) feedback('selection');
       setActiveTab(value);
     }
   };
@@ -451,6 +479,8 @@ export function TabsTrigger({
       onPress={handlePress}
       disabled={disabled}
       activeOpacity={0.8}
+      accessibilityRole='tab'
+      accessibilityState={{ selected: isActive, disabled }}
     >
       {typeof children === 'string' ? (
         <Text style={triggerTextStyle}>{children}</Text>

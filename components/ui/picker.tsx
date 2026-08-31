@@ -3,9 +3,10 @@ import { ScrollView } from '@/components/ui/scroll-view';
 import { Text } from '@/components/ui/text';
 import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
+import { useHaptics } from '@/hooks/useHaptics';
 import { BORDER_RADIUS, CORNERS, FONT_SIZE, HEIGHT } from '@/theme/globals';
 import { ChevronDown, LucideProps } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -53,6 +54,7 @@ interface PickerProps {
   modalTitle?: string;
   searchable?: boolean;
   searchPlaceholder?: string;
+  haptic?: boolean;
 }
 
 export function Picker({
@@ -77,15 +79,24 @@ export function Picker({
   modalTitle,
   searchable = false,
   searchPlaceholder = 'Search options...',
+  haptic = true,
 }: PickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const feedback = useHaptics(haptic);
 
   // Move ALL theme color hooks to the top level
   const borderColor = useColor('border');
   const text = useColor('text');
   const muted = useColor('mutedForeground');
   const cardColor = useColor('card');
+  // `card` is a translucent "glass" tint in dark mode, meant to sit over the
+  // app's opaque navy `background` inside the normal view tree — a `Modal`
+  // isn't guaranteed to have that painted behind it (notably on web, via
+  // react-native-web's Modal polyfill), so it can render as a plain light
+  // box instead. `popover` is the opaque surface token this codebase's own
+  // Popover component already uses for exactly this situation.
+  const popoverColor = useColor('popover');
   const danger = useColor('red');
   const accent = useColor('accent');
   const primary = useColor('primary');
@@ -98,18 +109,25 @@ export function Picker({
   const normalizedSections: PickerSection[] =
     sections.length > 0 ? sections : [{ options }];
 
-  // Filter sections based on search query
-  const filteredSections =
-    searchable && searchQuery
-      ? normalizedSections
-          .map((section) => ({
-            ...section,
-            options: section.options.filter((option) =>
-              option.label.toLowerCase().includes(searchQuery.toLowerCase())
-            ),
-          }))
-          .filter((section) => section.options.length > 0)
-      : normalizedSections;
+  // Filter sections based on search query — memoized so typing in an
+  // unrelated part of the screen doesn't re-filter every option on every
+  // render. Depends on `sections`/`options` directly rather than
+  // `normalizedSections`, which is a fresh array every render.
+  const filteredSections = useMemo(
+    () =>
+      searchable && searchQuery
+        ? normalizedSections
+            .map((section) => ({
+              ...section,
+              options: section.options.filter((option) =>
+                option.label.toLowerCase().includes(searchQuery.toLowerCase())
+              ),
+            }))
+            .filter((section) => section.options.length > 0)
+        : normalizedSections,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [searchable, searchQuery, sections, options]
+  );
 
   // Get selected options for display
   const getSelectedOptions = () => {
@@ -126,14 +144,25 @@ export function Picker({
 
   const handleSelect = (optionValue: string) => {
     if (multiple) {
-      const newValues = values.includes(optionValue)
+      // Multi-select rows behave like checkboxes, so they get toggle feedback
+      // rather than the one-shot selection tick.
+      const isSelected = values.includes(optionValue);
+      feedback(isSelected ? 'toggle-off' : 'toggle-on');
+      const newValues = isSelected
         ? values.filter((v) => v !== optionValue)
         : [...values, optionValue];
       onValuesChange?.(newValues);
     } else {
+      feedback('selection');
       onValueChange?.(optionValue);
       setIsOpen(false);
     }
+  };
+
+  const handleOpen = () => {
+    if (disabled) return;
+    feedback('impact-light');
+    setIsOpen(true);
   };
 
   const getDisplayText = () => {
@@ -185,6 +214,8 @@ export function Picker({
           opacity: option.disabled ? 0.3 : 1,
         }}
         disabled={option.disabled}
+        accessibilityRole='menuitem'
+        accessibilityState={{ selected: isSelected, disabled: option.disabled }}
       >
         <View
           style={{
@@ -224,7 +255,7 @@ export function Picker({
     <>
       <TouchableOpacity
         style={[triggerStyle, style]}
-        onPress={() => !disabled && setIsOpen(true)}
+        onPress={handleOpen}
         disabled={disabled}
         activeOpacity={0.8}
       >
@@ -234,7 +265,7 @@ export function Picker({
             width: label ? 128 : 'auto',
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 12,
+            gap: 8,
           }}
           pointerEvents='none'
         >
@@ -275,10 +306,10 @@ export function Picker({
                   selectedOptions.length > 0
                     ? text
                     : disabled
-                    ? muted
-                    : error
-                    ? danger
-                    : muted,
+                      ? muted
+                      : error
+                        ? danger
+                        : muted,
               },
               inputStyle,
             ]}
@@ -339,7 +370,7 @@ export function Picker({
         >
           <Pressable
             style={{
-              backgroundColor: cardColor,
+              backgroundColor: popoverColor,
               borderTopStartRadius: BORDER_RADIUS,
               borderTopEndRadius: BORDER_RADIUS,
               maxHeight: '70%',
@@ -390,12 +421,15 @@ export function Picker({
               >
                 <TextInput
                   style={{
-                    height: 36,
+                    minHeight: 40,
                     paddingHorizontal: 12,
+                    paddingVertical: 8,
                     borderRadius: 8,
                     backgroundColor: input,
                     color: text,
                     fontSize: FONT_SIZE,
+                    textAlignVertical: 'center',
+                    includeFontPadding: false,
                   }}
                   placeholder={searchPlaceholder}
                   placeholderTextColor={muted}
