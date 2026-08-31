@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
+import { useAuth } from '@/hooks/useAuth';
 import { router } from 'expo-router';
 import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,14 @@ import { User, Phone, UserPlus, Truck } from 'lucide-react-native';
 export default function CreateSupplierScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Suppliers are owner/super_admin only — the backend enforces this too
+  // (403), this just keeps sellers from ever reaching the form.
+  const canView = user?.role !== 'seller';
+  useEffect(() => {
+    if (!canView) router.back();
+  }, [canView]);
 
   const [newSupplierName, setNewSupplierName] = useState('');
   const [newSupplierPhone, setNewSupplierPhone] = useState('');
@@ -74,6 +83,8 @@ export default function CreateSupplierScreen() {
       console.log('Error picking contact:', error);
     }
   };
+
+  if (!canView) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>

@@ -42,6 +42,9 @@ export default {
     success: "Успешно",
     warning: "Предупреждение",
     filter: "Фильтрация",
+    on: "Вкл",
+    off: "Выкл",
+    somethingWentWrong: "Что-то пошло не так",
     fillRequiredFields: "Пожалуйста, заполните обязательные поля",
     exportError: "Ошибка при экспорте",
     permissionsDenied: "Доступ запрещен",
@@ -162,6 +165,29 @@ export default {
     overview: "Обзор",
     recentActivity: "Последние действия",
     viewAll: "Посмотреть все",
+    allStock: "Весь склад",
+    empty: "Записей о складе пока нет",
+    noLowStock: "Ничего не заканчивается",
+    minLabel: "Мин",
+    currentStock: "Текущий остаток",
+    quantity: "Количество",
+    minQuantity: "Мин. остаток",
+    maxQuantity: "Макс. остаток",
+    costPrice: "Себестоимость",
+    location: "Место хранения",
+    notePlaceholder: "Примечание (причина изменения)",
+    saveChanges: "Сохранить изменения",
+    adjusted: "Склад обновлён",
+    movements: "История движений",
+    noMovements: "Движений пока нет",
+    movementTypes: {
+      in: "Приход",
+      out: "Расход",
+      adjustment: "Корректировка"
+    },
+    deleteRecord: "Удалить складскую запись",
+    deleteConfirm: "Запись о складе для этого товара будет удалена безвозвратно. Продолжить?",
+    deleted: "Складская запись удалена"
   },
   products: {
     title: "Товары",
@@ -297,6 +323,220 @@ export default {
     items_one: "{{count}} товар",
     items_few: "{{count}} товара",
     items_many: "{{count}} товаров",
-    items_other: "{{count}} товаров"
+    items_other: "{{count}} товаров",
+    summary: {
+      revenue: "Выручка",
+      profit: "Прибыль",
+      debt: "Долг"
+    },
+    pos: {
+      title: "Новая продажа",
+      addItems: "Добавить товары",
+      searchProducts: "Поиск товаров...",
+      cart: "Корзина",
+      cartEmpty: "Товары ещё не добавлены",
+      client: "Клиент (необязательно)",
+      walkIn: "Обычный клиент",
+      discount: "Скидка",
+      fullyPaid: "Оплачено полностью",
+      paidAmount: "Сумма оплаты",
+      subtotal: "Подытог",
+      total: "Итого",
+      toPay: "Оплачено",
+      debt: "Долг",
+      available: "Доступно",
+      outOfStock: "Нет в наличии",
+      checkout: "Оформить",
+      errors: {
+        emptyCart: "Добавьте хотя бы один товар",
+        clientRequiredForDebt: "Выберите клиента для продажи в долг",
+        paidExceedsTotal: "Оплата не может превышать сумму"
+      },
+      success: {
+        saleCreated: "Продажа сохранена"
+      }
+    },
+    detail: {
+      title: "Детали продажи",
+      client: "Клиент",
+      seller: "Продавец",
+      date: "Дата",
+      walkIn: "Обычный клиент",
+      items: "Товары",
+      subtotal: "Подытог",
+      discount: "Скидка",
+      total: "Итого",
+      paid: "Оплачено",
+      debt: "Долг",
+      cancelSale: "Отменить продажу",
+      cancelConfirm: "Товар вернётся на склад, долг клиента будет отменён. Продолжить?",
+      cancelSuccess: "Продажа отменена",
+      linkedDebt: "Связанные операции клиента"
+    }
+  },
+  settings: {
+    sections: {
+      account: "Аккаунт",
+      business: "Бизнес",
+      security: "Безопасность",
+      appearance: "Оформление",
+      administration: "Администрирование"
+    },
+    rows: {
+      profile: "Профиль",
+      password: "Сменить пароль",
+      business: "Профиль бизнеса",
+      branches: "Филиалы",
+      catalog: "Каталог",
+      subscription: "Подписка",
+      appLock: "Блокировка (PIN)",
+      sessions: "Активные сеансы",
+      theme: "Тема",
+      logout: "Выйти",
+      tenants: "Организации",
+      plans: "Тарифные планы"
+    },
+    roles: {
+      super_admin: "Супер-админ",
+      owner: "Владелец",
+      seller: "Продавец"
+    },
+    logoutConfirm: "Потребуется войти снова, чтобы пользоваться приложением.",
+    profile: {
+      saved: "Профиль обновлён",
+      nameLockedForSeller: "Имя может изменить только владелец."
+    },
+    password: {
+      changed: "Пароль изменён",
+      current: "Текущий пароль",
+      new: "Новый пароль",
+      confirm: "Повторите новый пароль",
+      currentRequired: "Введите текущий пароль",
+      mismatch: "Новые пароли не совпадают",
+      hint: "Минимум 6 символов.",
+      submit: "Обновить пароль"
+    },
+    business: {
+      saved: "Бизнес обновлён",
+      readOnlyForSeller: "Изменять данные бизнеса может только владелец."
+    },
+    branches: {
+      empty: "Филиалов пока нет",
+      add: "Новый филиал",
+      edit: "Изменить филиал",
+      created: "Филиал создан",
+      updated: "Филиал обновлён",
+      deactivated: "Филиал отключён",
+      active: "Активен",
+      inactive: "Отключён",
+      deactivate: "Отключить филиал",
+      deactivateConfirm: "Филиал будет скрыт и помечен как неактивный. Продолжить?"
+    },
+    catalog: {
+      categories: "Категории",
+      "brand-categories": "Бренды",
+      units: "Единицы"
+    },
+    subscription: {
+      noPlan: "Без плана",
+      until: "до",
+      renews: "Продление",
+      available: "Доступные планы",
+      currentPlan: "Текущий план",
+      contactToChange: "Свяжитесь с поддержкой, чтобы сменить план.",
+      status: {
+        trial: "Пробный",
+        active: "Активна",
+        expired: "Истекла",
+        cancelled: "Отменена"
+      },
+      limits: {
+        days: "{{count}} дней доступа",
+        branches: "До {{count}} филиалов",
+        users: "До {{count}} сотрудников",
+        products: "До {{count}} товаров"
+      }
+    },
+    security: {
+      on: "Блокировка включена",
+      off: "Блокировка выключена",
+      explainer: "Запрашивать 4-значный PIN при запуске приложения.",
+      enable: "Задать PIN",
+      lockNow: "Заблокировать сейчас",
+      change: "Сменить PIN",
+      disable: "Выключить блокировку",
+      enabled: "Блокировка включена",
+      disabled: "Блокировка выключена",
+      enterPin: "Введите PIN",
+      enterPinSubtitle: "Введите PIN для разблокировки",
+      newPin: "Новый PIN",
+      newPinSubtitle: "Придумайте 4-значный PIN",
+      confirmPin: "Подтвердите PIN",
+      confirmPinSubtitle: "Введите новый PIN ещё раз",
+      currentPin: "Текущий PIN",
+      currentPinSubtitle: "Введите текущий PIN, чтобы продолжить",
+      wrongPin: "Неверный PIN",
+      noMatch: "PIN не совпал, попробуйте снова"
+    },
+    sessions: {
+      revoked: "Сеанс завершён",
+      current: "Это устройство",
+      revoke: "Завершить",
+      logoutAll: "Завершить все сеансы",
+      logoutAllConfirm: "Все устройства, включая это, будут разлогинены.",
+      unknownDevice: "Неизвестное устройство"
+    }
+  },
+  staff: {
+    add: "Добавить сотрудника",
+    edit: "Изменить сотрудника",
+    detail: "Сотрудник",
+    created: "Сотрудник добавлен",
+    updated: "Сотрудник обновлён",
+    deactivated: "Сотрудник отключён",
+    deactivate: "Отключить",
+    deactivateConfirm: "Этот человек больше не сможет войти. Продолжить?",
+    role: "Роль",
+    branch: "Филиал",
+    noBranch: "Без филиала",
+    status: "Статус",
+    newPassword: "Новый пароль (пусто — оставить прежний)",
+    createHint: "Вход по этому номеру телефона и паролю.",
+    editHint: "Оставьте пароль пустым, чтобы не менять его.",
+    reactivateHint: "Восстановить сотрудника"
+  },
+  admin: {
+    tenants: {
+      title: "Организации",
+      empty: "Организаций нет",
+      detail: "Организация",
+      saved: "Организация обновлена",
+      deactivated: "Организация отключена",
+      deactivate: "Отключить организацию",
+      deactivateConfirm: "Бизнес и все сотрудники потеряют доступ. Продолжить?",
+      users: "Сотрудники",
+      products: "Товары",
+      branches: "Филиалы"
+    },
+    plans: {
+      title: "Тарифные планы",
+      empty: "Планов пока нет",
+      add: "Новый план",
+      edit: "Изменить план",
+      created: "План создан",
+      updated: "План обновлён",
+      deactivated: "План отключён",
+      deactivate: "Отключить план",
+      deactivateConfirm: "Новые организации не смогут выбрать этот план. Продолжить?",
+      name: "Название плана",
+      description: "Описание",
+      price: "Цена",
+      durationDays: "Срок (дней)",
+      maxBranches: "Макс. филиалов",
+      maxUsers: "Макс. сотрудников",
+      maxProducts: "Макс. товаров",
+      nameRequired: "Введите название плана",
+      durationRequired: "Срок — не менее 1 дня"
+    }
   }
 };

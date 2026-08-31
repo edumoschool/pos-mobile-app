@@ -42,6 +42,9 @@ export default {
     success: "Success",
     warning: "Warning",
     filter: "Filter",
+    on: "On",
+    off: "Off",
+    somethingWentWrong: "Something went wrong",
     fillRequiredFields: "Please fill in required fields",
     exportError: "Error during export",
     permissionsDenied: "Permission denied",
@@ -162,6 +165,29 @@ export default {
     overview: "Overview",
     recentActivity: "Recent Activity",
     viewAll: "View All",
+    allStock: "All Stock",
+    empty: "No inventory records yet",
+    noLowStock: "Nothing is running low",
+    minLabel: "Min",
+    currentStock: "Current Stock",
+    quantity: "Quantity",
+    minQuantity: "Min quantity",
+    maxQuantity: "Max quantity",
+    costPrice: "Cost price",
+    location: "Storage location",
+    notePlaceholder: "Note (reason for this change)",
+    saveChanges: "Save changes",
+    adjusted: "Inventory updated",
+    movements: "Movement History",
+    noMovements: "No movements recorded yet",
+    movementTypes: {
+      in: "Stock in",
+      out: "Stock out",
+      adjustment: "Adjustment"
+    },
+    deleteRecord: "Delete inventory record",
+    deleteConfirm: "This permanently removes the stock record for this product. Continue?",
+    deleted: "Inventory record deleted"
   },
   products: {
     title: "Products",
@@ -295,6 +321,220 @@ export default {
     walkInCustomer: "Walk-in Customer",
     noResults: "No sales found",
     items_one: "{{count}} item",
-    items_other: "{{count}} items"
+    items_other: "{{count}} items",
+    summary: {
+      revenue: "Revenue",
+      profit: "Profit",
+      debt: "Debt"
+    },
+    pos: {
+      title: "New Sale",
+      addItems: "Add items",
+      searchProducts: "Search products...",
+      cart: "Cart",
+      cartEmpty: "No items added yet",
+      client: "Client (optional)",
+      walkIn: "Walk-in customer",
+      discount: "Discount",
+      fullyPaid: "Paid in full",
+      paidAmount: "Amount paid now",
+      subtotal: "Subtotal",
+      total: "Total",
+      toPay: "Paid",
+      debt: "Debt",
+      available: "Available",
+      outOfStock: "Out of stock",
+      checkout: "Checkout",
+      errors: {
+        emptyCart: "Add at least one product",
+        clientRequiredForDebt: "Select a client for a debt sale",
+        paidExceedsTotal: "Paid amount cannot exceed the total"
+      },
+      success: {
+        saleCreated: "Sale recorded"
+      }
+    },
+    detail: {
+      title: "Sale Details",
+      client: "Client",
+      seller: "Seller",
+      date: "Date",
+      walkIn: "Walk-in customer",
+      items: "Items",
+      subtotal: "Subtotal",
+      discount: "Discount",
+      total: "Total",
+      paid: "Paid",
+      debt: "Debt",
+      cancelSale: "Cancel Sale",
+      cancelConfirm: "This restores stock and reverses any client debt. Continue?",
+      cancelSuccess: "Sale cancelled",
+      linkedDebt: "Linked client transactions"
+    }
+  },
+  settings: {
+    sections: {
+      account: "Account",
+      business: "Business",
+      security: "Security",
+      appearance: "Appearance",
+      administration: "Administration"
+    },
+    rows: {
+      profile: "Profile",
+      password: "Change password",
+      business: "Business profile",
+      branches: "Branches",
+      catalog: "Catalog",
+      subscription: "Subscription",
+      appLock: "App lock (PIN)",
+      sessions: "Active sessions",
+      theme: "Theme",
+      logout: "Log out",
+      tenants: "Tenants",
+      plans: "Subscription plans"
+    },
+    roles: {
+      super_admin: "Super admin",
+      owner: "Owner",
+      seller: "Seller"
+    },
+    logoutConfirm: "You'll need to sign in again to use the app.",
+    profile: {
+      saved: "Profile updated",
+      nameLockedForSeller: "Only an owner can change your name."
+    },
+    password: {
+      changed: "Password changed",
+      current: "Current password",
+      new: "New password",
+      confirm: "Confirm new password",
+      currentRequired: "Enter your current password",
+      mismatch: "The new passwords don't match",
+      hint: "Use at least 6 characters.",
+      submit: "Update password"
+    },
+    business: {
+      saved: "Business updated",
+      readOnlyForSeller: "Only an owner can edit business details."
+    },
+    branches: {
+      empty: "No branches yet",
+      add: "New branch",
+      edit: "Edit branch",
+      created: "Branch created",
+      updated: "Branch updated",
+      deactivated: "Branch deactivated",
+      active: "Active",
+      inactive: "Inactive",
+      deactivate: "Deactivate branch",
+      deactivateConfirm: "This branch will be hidden and marked inactive. Continue?"
+    },
+    catalog: {
+      categories: "Categories",
+      "brand-categories": "Brands",
+      units: "Units"
+    },
+    subscription: {
+      noPlan: "No plan",
+      until: "until",
+      renews: "Renews",
+      available: "Available plans",
+      currentPlan: "Current plan",
+      contactToChange: "Contact support to change your plan.",
+      status: {
+        trial: "Trial",
+        active: "Active",
+        expired: "Expired",
+        cancelled: "Cancelled"
+      },
+      limits: {
+        days: "{{count}} days of access",
+        branches: "Up to {{count}} branches",
+        users: "Up to {{count}} staff",
+        products: "Up to {{count}} products"
+      }
+    },
+    security: {
+      on: "App lock is on",
+      off: "App lock is off",
+      explainer: "Require a 4-digit PIN to open the app.",
+      enable: "Set up a PIN",
+      lockNow: "Lock now",
+      change: "Change PIN",
+      disable: "Turn off app lock",
+      enabled: "App lock enabled",
+      disabled: "App lock disabled",
+      enterPin: "Enter PIN",
+      enterPinSubtitle: "Enter your PIN to unlock",
+      newPin: "New PIN",
+      newPinSubtitle: "Choose a 4-digit PIN",
+      confirmPin: "Confirm PIN",
+      confirmPinSubtitle: "Re-enter your new PIN",
+      currentPin: "Current PIN",
+      currentPinSubtitle: "Enter your current PIN to continue",
+      wrongPin: "Incorrect PIN",
+      noMatch: "PINs didn't match, try again"
+    },
+    sessions: {
+      revoked: "Session revoked",
+      current: "This device",
+      revoke: "Revoke",
+      logoutAll: "Log out all sessions",
+      logoutAllConfirm: "Every device, including this one, will be signed out.",
+      unknownDevice: "Unknown device"
+    }
+  },
+  staff: {
+    add: "Add staff",
+    edit: "Edit staff",
+    detail: "Staff member",
+    created: "Staff member added",
+    updated: "Staff member updated",
+    deactivated: "Staff member deactivated",
+    deactivate: "Deactivate",
+    deactivateConfirm: "This person will no longer be able to sign in. Continue?",
+    role: "Role",
+    branch: "Branch",
+    noBranch: "No branch",
+    status: "Status",
+    newPassword: "New password (leave blank to keep)",
+    createHint: "They sign in with this phone number and password.",
+    editHint: "Leave the password blank to keep the current one.",
+    reactivateHint: "Reactivate this staff member"
+  },
+  admin: {
+    tenants: {
+      title: "Tenants",
+      empty: "No tenants",
+      detail: "Tenant",
+      saved: "Tenant updated",
+      deactivated: "Tenant deactivated",
+      deactivate: "Deactivate tenant",
+      deactivateConfirm: "The business and all its staff will lose access. Continue?",
+      users: "Staff",
+      products: "Products",
+      branches: "Branches"
+    },
+    plans: {
+      title: "Subscription plans",
+      empty: "No plans yet",
+      add: "New plan",
+      edit: "Edit plan",
+      created: "Plan created",
+      updated: "Plan updated",
+      deactivated: "Plan deactivated",
+      deactivate: "Deactivate plan",
+      deactivateConfirm: "New tenants won't be able to pick this plan. Continue?",
+      name: "Plan name",
+      description: "Description",
+      price: "Price",
+      durationDays: "Duration (days)",
+      maxBranches: "Max branches",
+      maxUsers: "Max staff",
+      maxProducts: "Max products",
+      nameRequired: "Enter a plan name",
+      durationRequired: "Duration must be at least 1 day"
+    }
   }
 };

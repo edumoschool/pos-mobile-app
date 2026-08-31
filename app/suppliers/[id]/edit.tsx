@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
+import { useAuth } from '@/hooks/useAuth';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,14 @@ export default function EditSupplierScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Suppliers are owner/super_admin only — the backend enforces this too
+  // (403), this just keeps sellers from ever reaching the form.
+  const canView = user?.role !== 'seller';
+  useEffect(() => {
+    if (!canView) router.back();
+  }, [canView]);
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -35,7 +44,7 @@ export default function EditSupplierScreen() {
   const { data: supplier, isLoading } = useQuery({
     queryKey: ['supplier', id],
     queryFn: () => suppliersApi.getById(id!),
-    enabled: !!id,
+    enabled: !!id && canView,
   });
 
   useEffect(() => {
@@ -113,6 +122,8 @@ export default function EditSupplierScreen() {
       console.log(e);
     }
   };
+
+  if (!canView) return null;
 
   if (isLoading) {
     return (

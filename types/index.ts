@@ -100,6 +100,12 @@ export interface ChangeLanguagePayload {
   language: Language;
 }
 
+/** PATCH /auth/change-password */
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
 // ─── Session ────────────────────────────────────────────────────────────────
 
 export interface Session {
@@ -133,7 +139,32 @@ export interface Tenant {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  subscriptionPlan?: SubscriptionPlan;
+  subscriptionPlan?: SubscriptionPlan | null;
+  branches?: Branch[];
+  _count?: { users: number; products: number };
+}
+
+/** PATCH /tenants/me — fields an owner may change on their own business */
+export interface UpdateOwnTenantPayload {
+  name?: string;
+  language?: Language;
+}
+
+/** POST /tenants — super_admin only */
+export interface CreateTenantPayload {
+  name: string;
+  ownerPhone: string;
+  language?: Language;
+  subscriptionPlanId?: string;
+  isActive?: boolean;
+}
+
+/** PATCH /tenants/:id — super_admin only */
+export interface UpdateTenantPayload {
+  name?: string;
+  language?: Language;
+  subscriptionPlanId?: string;
+  isActive?: boolean;
 }
 
 // ─── Subscription Plan ──────────────────────────────────────────────────────
@@ -151,6 +182,20 @@ export interface SubscriptionPlan {
   isActive: boolean;
   createdAt: string;
 }
+
+export interface CreateSubscriptionPlanPayload {
+  name: string;
+  description?: string;
+  price: number;
+  durationDays: number;
+  maxBranches?: number;
+  maxUsers?: number;
+  maxProducts?: number;
+  features?: Record<string, unknown>;
+  isActive?: boolean;
+}
+
+export type UpdateSubscriptionPlanPayload = Partial<CreateSubscriptionPlanPayload>;
 
 // ─── Branch ─────────────────────────────────────────────────────────────────
 

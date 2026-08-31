@@ -1,12 +1,13 @@
-import axios from 'axios';
+import { AxiosError, create } from 'axios';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import i18n from '@/i18n';
 import { storage } from '@/api/storage';
 import { API_URL } from '@/api/config';
 
 const userAgent = `${Device.modelName ?? 'Unknown'} (${Platform.OS} ${Device.osVersion ?? ''})`;
 
-const api = axios.create({
+const api = create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
@@ -14,12 +15,16 @@ const api = axios.create({
   },
 });
 
-// Attach JWT to every request
+// Attach JWT + the active UI language to every request.
+// The backend localises error messages and report exports from the
+// authenticated user's stored language, falling back to this header
+// (used for pre-login requests such as login/register).
 api.interceptors.request.use(async (config) => {
   const token = await storage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config.headers['Accept-Language'] = i18n.language || 'uz';
   return config;
 });
 
@@ -47,7 +52,7 @@ export default api;
 
 /** Extract a user-friendly error message from API errors */
 export const getApiErrorMessage = (error: unknown): string => {
-  if (axios.isAxiosError(error)) {
+  if (error instanceof AxiosError) {
     const data = error.response?.data;
     if (!data) return 'Network error. Check your connection.';
     if (Array.isArray(data.message)) return data.message.join('\n');

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, TouchableOpacity, Platform, ActivityIndicator, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import {
@@ -10,12 +11,15 @@ import {
   ChevronRight,
   Filter
 } from 'lucide-react-native';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { salesApi } from '@/api/sales';
 import { FlashList } from '@shopify/flash-list';
 import { RefreshControl } from 'react-native';
 import { formatAmount } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import type { SaleStatus } from '@/types';
+
+const STATUS_FILTERS: (SaleStatus | 'all')[] = ['all', 'completed', 'debt', 'cancelled'];
 
 export default function SalesScreen() {
   const { t } = useTranslation();
@@ -32,6 +36,16 @@ export default function SalesScreen() {
   const red = useColor('red');
   const secondary = useColor('secondary');
 
+  const [showSummary, setShowSummary] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
+  const [status, setStatus] = useState<SaleStatus | 'all'>('all');
+
+  const { data: summary } = useQuery({
+    queryKey: ['sales-summary'],
+    queryFn: () => salesApi.getSummary(),
+    staleTime: 60 * 1000,
+  });
+
   const {
     data,
     isLoading,
@@ -41,10 +55,11 @@ export default function SalesScreen() {
     refetch,
     isRefetching,
   } = useInfiniteQuery({
-    queryKey: ['sales'],
+    queryKey: ['sales', status],
     queryFn: ({ pageParam = 1 }) => salesApi.getAll({
       page: pageParam,
       limit: 20,
+      status: status === 'all' ? undefined : status,
     }),
     getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
@@ -54,20 +69,62 @@ export default function SalesScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: bg, paddingTop: Platform.OS === 'ios' ? insets.top : insets.top }}>
-      
+
       {/* Topbar */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 }}>
-        <TouchableOpacity>
-          <PieChart size={24} color={primary} />
+        <TouchableOpacity onPress={() => setShowSummary((v) => !v)}>
+          <PieChart size={24} color={showSummary ? primary : muted} />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '700', color: text }}>{t('sales.title')}</Text>
-        <TouchableOpacity>
-          <Filter size={22} color={text} />
+        <TouchableOpacity onPress={() => setShowFilter((v) => !v)}>
+          <Filter size={22} color={status !== 'all' || showFilter ? primary : text} />
         </TouchableOpacity>
       </View>
 
+      {/* Today's summary */}
+      {showSummary && summary && (
+        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 12 }}>
+          {[
+            { label: t('sales.summary.revenue'), value: summary.totalRevenue, color: text },
+            { label: t('sales.summary.profit'), value: summary.grossProfit, color: green },
+            { label: t('sales.summary.debt'), value: summary.totalDebt, color: orange },
+          ].map((s) => (
+            <View key={s.label} style={{ flex: 1, backgroundColor: card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: border + '50' }}>
+              <Text style={{ fontSize: 11, color: muted, marginBottom: 4 }} numberOfLines={1}>{s.label}</Text>
+              <Text style={{ fontSize: 14, fontWeight: '800', color: s.color }} numberOfLines={1}>
+                {formatAmount(s.value)}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
 
-
+      {/* Status filter */}
+      {showFilter && (
+        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 12 }}>
+          {STATUS_FILTERS.map((s) => {
+            const active = status === s;
+            return (
+              <TouchableOpacity
+                key={s}
+                onPress={() => setStatus(s)}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 16,
+                  backgroundColor: active ? primary : card,
+                  borderWidth: 1,
+                  borderColor: active ? primary : border + '80',
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '600', color: active ? primaryForeground : muted }}>
+                  {t(`sales.tabs.${s}` as any)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
 
       {/* List */}
       <View style={{ flex: 1 }}>
@@ -103,7 +160,7 @@ export default function SalesScreen() {
               let statusBg = secondary;
               let statusColor = muted;
               let displayStatus = t('sales.status.unknown');
-              
+
               if (item.status === 'completed') {
                 statusBg = green + '20';
                 statusColor = green;
@@ -118,7 +175,6 @@ export default function SalesScreen() {
                 displayStatus = t('sales.status.cancelled');
               }
 
-              // @ts-ignore - Assuming client relation is returned or nested
               const customerName = item.client?.fullName || t('sales.walkInCustomer');
               const dateStr = new Date(item.createdAt).toLocaleString(undefined, {
                 month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
@@ -127,6 +183,7 @@ export default function SalesScreen() {
 
               return (
                 <TouchableOpacity
+                  onPress={() => router.push(`/sales/${item.id}` as any)}
                   style={{
                     backgroundColor: card,
                     borderRadius: 12,
@@ -178,6 +235,7 @@ export default function SalesScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
+        onPress={() => router.push('/sales/create' as any)}
         style={{ position: 'absolute', right: 20, bottom: insets.bottom + 30, width: 60, height: 60, borderRadius: 30, backgroundColor: primary, alignItems: 'center', justifyContent: 'center', shadowColor: primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6 }}
       >
         <Plus size={28} color={primaryForeground} />

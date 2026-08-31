@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, RefreshControl } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,6 +19,7 @@ import { FlashList } from '@shopify/flash-list';
 
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
+import { useAuth } from '@/hooks/useAuth';
 import { supplierTransactionsApi } from '@/api/party-transactions';
 import { suppliersApi } from '@/api/partners';
 import { getApiErrorMessage } from '@/api/client';
@@ -36,6 +37,14 @@ import { Header } from '@/components/ui/header';
 export default function SupplierDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, i18n } = useTranslation();
+  const { user: currentUser } = useAuth();
+
+  // Suppliers are owner/super_admin only — the backend enforces this too
+  // (403), this just keeps sellers from ever reaching the screen.
+  const canView = currentUser?.role !== 'seller';
+  useEffect(() => {
+    if (!canView) router.back();
+  }, [canView]);
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -65,7 +74,7 @@ export default function SupplierDetailScreen() {
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['supplier-balance', id],
     queryFn: () => supplierTransactionsApi.getBalance(id!),
-    enabled: !!id,
+    enabled: !!id && canView,
   });
 
   const createMutation = useMutation({
@@ -137,6 +146,8 @@ export default function SupplierDetailScreen() {
     setTransactionType(type);
     setIsSheetVisible(true);
   };
+
+  if (!canView) return null;
 
   if (isLoading) {
     return (

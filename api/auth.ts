@@ -4,6 +4,7 @@ import type {
   AuthResponse,
   LoginPayload,
   RegisterPayload,
+  ChangePasswordPayload,
   User,
   Session,
   MessageResponse,
@@ -47,6 +48,12 @@ export const authApi = {
   /** POST /auth/logout-all — revokes every session for the current user */
   logoutAll: async (): Promise<void> => {
     await api.post<MessageResponse>('/auth/logout-all');
+  },
+
+  /** PATCH /auth/change-password — verifies the current password server-side */
+  changePassword: async (data: ChangePasswordPayload): Promise<MessageResponse> => {
+    const res = await api.patch<MessageResponse>('/auth/change-password', data);
+    return res.data;
   },
 
   // ─── Session management ─────────────────────────────────────────────
