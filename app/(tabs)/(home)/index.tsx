@@ -1,5 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, TouchableOpacity, Platform, Image, StyleSheet, useColorScheme, Text as RNText } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Platform,
+  Image,
+  StyleSheet,
+  useColorScheme,
+  Text as RNText,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  RefreshControl,
+} from 'react-native';
 import { Marquee } from '@animatereactnative/marquee';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/text';
@@ -8,19 +20,14 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   ShoppingBag,
   Calculator,
-  Search,
   Filter,
-  Menu,
   UserPlus,
-  Bell,
-  Layers,
   Package,
-  User,
   Download,
   ArrowUpAZ,
   ArrowDownZA
 } from 'lucide-react-native';
-import SegmentedControl from '@expo/ui/community/segmented-control';
+import { SegmentedControl } from '@expo/ui/community/segmented-control';
 import { FlashList } from '@shopify/flash-list';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,7 +37,6 @@ import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tansta
 import { clientsApi, suppliersApi } from '@/api/partners';
 import { exchangeRatesApi } from '@/api/exchange-rates';
 import { usersApi } from '@/api/users';
-import { ActivityIndicator, Alert, Linking, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
@@ -43,6 +49,9 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const listRef = useRef<any>(null);
+  // Suppliers and staff are owner/super_admin-only — the backend enforces
+  // this too (403), this just keeps sellers from ever seeing the tabs.
+  const isManager = user?.role === 'owner' || user?.role === 'super_admin';
 
 
 
@@ -70,12 +79,18 @@ export default function HomeScreen() {
   });
 
 
-  const segments = [t('home.segments.clients'), t('home.segments.suppliers'), t('home.segments.employees')];
+  const segments = isManager
+    ? [t('home.segments.clients'), t('home.segments.suppliers'), t('home.segments.employees')]
+    : [t('home.segments.clients')];
   const { tab } = useLocalSearchParams<{ tab: string }>();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
+    if (!isManager) {
+      setSelectedIndex(0);
+      return;
+    }
     if (tab === '1') {
       setSelectedIndex(1);
     } else if (tab === '0') {
@@ -83,7 +98,7 @@ export default function HomeScreen() {
     } else if (tab === '2') {
       setSelectedIndex(2);
     }
-  }, [tab]);
+  }, [tab, isManager]);
 
   const tenantName = user?.tenant?.name || t('home.defaultTenantName');
 
@@ -120,6 +135,7 @@ export default function HomeScreen() {
     queryFn: ({ pageParam = 1 }) => suppliersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
     getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
+    enabled: isManager,
   });
 
   const {
@@ -135,6 +151,7 @@ export default function HomeScreen() {
     queryFn: ({ pageParam = 1 }) => usersApi.getAll({ page: pageParam, limit: 20, search: searchQuery || undefined }),
     getNextPageParam: (lastPage) => lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
     initialPageParam: 1,
+    enabled: isManager,
   });
 
   const clients = clientsData?.pages.flatMap(page => page.data) || [];
@@ -282,11 +299,14 @@ export default function HomeScreen() {
           >
             <ShoppingBag size={20} color={text} />
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
-          >
-            <Package size={20} color={text} />
-          </TouchableOpacity>
+          {user?.role !== 'seller' && (
+            <TouchableOpacity
+              onPress={() => router.push('/inventory' as any)}
+              style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
+            >
+              <Package size={20} color={text} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             onPress={() => router.push('/calculator')}
             style={[styles.iconButton, { backgroundColor: card, borderColor: border, borderWidth: 1 }]}
@@ -317,19 +337,21 @@ export default function HomeScreen() {
         </Marquee>
       )}
 
-      {/* ── Segments ──────────────────────────────────────────── */}
-      <View style={{ paddingHorizontal: 2, paddingBottom: 16, marginHorizontal: 2 }}>
-        <SegmentedControl
-          values={segments}
-          selectedIndex={selectedIndex}
-          onChange={(event) => {
-            setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
-          }}
-          tintColor="#1b0d44ff"
-          appearance={isDark ? 'dark' : 'light'}
-          style={{ height: 40, }}
-        />
-      </View>
+      {/* ── Segments (owner/super_admin only — sellers only have Clients) ── */}
+      {isManager && (
+        <View style={{ paddingHorizontal: 2, paddingBottom: 16, marginHorizontal: 2 }}>
+          <SegmentedControl
+            values={segments}
+            selectedIndex={selectedIndex}
+            onChange={(event) => {
+              setSelectedIndex(event.nativeEvent.selectedSegmentIndex);
+            }}
+            tintColor="#1b0d44ff"
+            appearance={isDark ? 'dark' : 'light'}
+            style={{ height: 40, }}
+          />
+        </View>
+      )}
 
       {/* ── Search & Filter ───────────────────────────────────── */}
       <View style={{
@@ -431,6 +453,8 @@ export default function HomeScreen() {
                     router.push(`/clients/${item.id}` as any);
                   } else if (selectedIndex === 1) {
                     router.push(`/suppliers/${item.id}` as any);
+                  } else if (selectedIndex === 2) {
+                    router.push(`/staff/${item.id}` as any);
                   }
                 }}
                 style={{
@@ -509,14 +533,20 @@ export default function HomeScreen() {
             )}
           </TouchableOpacity>
         )}
-        {selectedIndex !== 2 && (
-          <TouchableOpacity 
-            onPress={() => router.push(selectedIndex === 0 ? '/clients/create' : '/suppliers/create')} 
-            style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}
-          >
-            <UserPlus size={20} color={primaryForeground} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={() =>
+            router.push(
+              selectedIndex === 0
+                ? '/clients/create'
+                : selectedIndex === 1
+                  ? '/suppliers/create'
+                  : ('/staff/create' as any),
+            )
+          }
+          style={[styles.fab, { backgroundColor: primary, shadowColor: primary }]}
+        >
+          <UserPlus size={20} color={primaryForeground} />
+        </TouchableOpacity>
       </View>
 
       {/* ── Filter Bottom Sheet ──────────────────────────────── */}

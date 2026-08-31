@@ -11,6 +11,8 @@ export { API_URL } from './config';
 
 export { authApi } from './auth';
 export { usersApi } from './users';
+export { tenantsApi } from './tenants';
+export { subscriptionPlansApi } from './subscription-plans';
 export { branchesApi } from './branches';
 export { productsApi } from './products';
 export { inventoryApi } from './inventory';
