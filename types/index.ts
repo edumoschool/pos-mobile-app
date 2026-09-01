@@ -301,6 +301,8 @@ export interface Product {
   unitId: string | null;
   name: string;
   description: string | null;
+  /** Barcode / SKU code */
+  sku: string | null;
   costPrice: number;
   sellingPrice: number;
   currency: Currency;
@@ -320,6 +322,8 @@ export interface Product {
 export interface CreateProductPayload {
   name: string;
   description?: string;
+  /** Barcode / SKU code (optional) */
+  sku?: string;
   categoryId?: string;
   brandCategoryId?: string;
   unitId?: string;
@@ -332,11 +336,15 @@ export interface CreateProductPayload {
   quantity?: number;
   /** Low-stock alert threshold */
   minQuantity?: number;
+  /** Supplier to link the auto-created inventory record to */
+  supplierId?: string;
 }
 
 export interface UpdateProductPayload {
   name?: string;
   description?: string;
+  /** Barcode / SKU code (optional) */
+  sku?: string;
   categoryId?: string;
   brandCategoryId?: string;
   unitId?: string;
@@ -348,6 +356,8 @@ export interface UpdateProductPayload {
   quantity?: number;
   /** Synced to linked Inventory record when provided */
   minQuantity?: number;
+  /** Synced to linked Inventory record when provided */
+  supplierId?: string;
 }
 
 // ─── Inventory ──────────────────────────────────────────────────────────────
@@ -365,7 +375,7 @@ export interface Inventory {
   location: string | null;
   updatedAt: string;
   // Included relations
-  product?: { id: string; name: string; sellingPrice?: number; currency?: Currency; unit?: Unit | null };
+  product?: { id: string; name: string; sku?: string | null; sellingPrice?: number; currency?: Currency; unit?: Unit | null };
   supplier?: { id: string; name: string } | null;
   movements?: InventoryMovement[];
 }
@@ -533,7 +543,33 @@ export interface ClientTransaction {
   // Included relations
   client?: { id: string; fullName: string; phone: string | null };
   user?: { id: string; fullName: string };
-  sale?: Sale | null;
+  /** Linked debt sale — a partial Sale shape covering only what's selected for this ledger view */
+  sale?: ClientTransactionSale | null;
+}
+
+/**
+ * Detail about the sale a client-transaction is linked to. Narrower than the
+ * full `Sale` type since the transaction ledger doesn't select every column.
+ */
+export interface ClientTransactionSale {
+  id: string;
+  status: SaleStatus;
+  paymentMethod: PaymentMethod;
+  currency: Currency;
+  totalAmount: number;
+  discount: number;
+  paidAmount: number;
+  debtAmount: number;
+  note: string | null;
+  createdAt: string;
+  branch?: { id: string; name: string } | null;
+  items?: {
+    id: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    product?: { id: string; name: string; sku?: string | null };
+  }[];
 }
 
 export interface CreateClientTransactionPayload {
@@ -596,7 +632,7 @@ export interface SaleItem {
   /** quantity * unitPrice */
   totalPrice: number;
   // Included relations
-  product?: { id: string; name: string; unit?: Unit | null };
+  product?: { id: string; name: string; sku?: string | null; unit?: Unit | null };
 }
 
 export interface Sale {
@@ -658,14 +694,6 @@ export interface SaleSummary {
   grossProfit: number;
   totalDiscount: number;
   totalDebt: number;
-}
-
-export interface SaleListQuery {
-  clientId?: string;
-  branchId?: string;
-  status?: SaleStatus;
-  from?: string;
-  to?: string;
 }
 
 // ─── Exchange Rate ──────────────────────────────────────────────────────────
@@ -761,7 +789,8 @@ export interface SupplierBalanceDetail {
 
 export interface ExportReportPayload {
   reportType: ExportReportType;
-  format: ReportFormat;
+  /** Defaults to 'pdf' on the backend when omitted */
+  format?: ReportFormat;
   branchId?: string;
   from?: string;
   to?: string;

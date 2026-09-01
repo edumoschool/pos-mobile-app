@@ -136,7 +136,9 @@ export default {
     transactionDetails: "Tranzaksiya tafsilotlari",
     deleteTxConfirmation: "Haqiqatan ham bu tranzaksiyani o'chirib tashlamoqchimisiz?",
     totalAmount: "Umumiy balans",
-    dueDate: "Muddat"
+    dueDate: "Muddat",
+    linkedSale: "Bog'liq sotuv",
+    viewSale: "Sotuvni ko'rish"
   },
   supplierDetail: {
     title: "Ta'minotchi ma'lumotlari",
@@ -226,9 +228,11 @@ export default {
     placeholders: {
       name: "Mahsulot nomini kiriting",
       description: "Mahsulot tavsifini kiriting",
+      sku: "Shtrix-kod / SKU kiriting (ixtiyoriy)",
       selectCategory: "Kategoriyani tanlang",
       selectBrandCategory: "Brend kategoriyasini tanlang",
       selectUnit: "O'lchov birligini tanlang",
+      selectSupplier: "Ta'minotchini tanlang",
       searchCategory: "Kategoriyani qidirish...",
       searchBrand: "Brendni qidirish..."
     },

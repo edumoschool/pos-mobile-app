@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
 import { categoriesApi, brandCategoriesApi, unitsApi } from '@/api/catalog';
+import { suppliersApi } from '@/api/partners';
 import { getApiErrorMessage } from '@/api/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -65,9 +66,11 @@ export default function EditProductScreen() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [sku, setSku] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [brandCategoryId, setBrandCategoryId] = useState('');
   const [unitId, setUnitId] = useState('');
+  const [supplierId, setSupplierId] = useState('');
   const [costPrice, setCostPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [currency, setCurrency] = useState<'UZS' | 'USD'>('UZS');
@@ -107,6 +110,11 @@ export default function EditProductScreen() {
     queryFn: () => unitsApi.getAll(),
   });
 
+  const { data: suppliers } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => suppliersApi.getAll({ limit: 100 }),
+  });
+
   const { data: product, isLoading: isFetchingProduct } = useQuery({
     queryKey: ['product', id],
     queryFn: () => productsApi.getById(id!),
@@ -118,6 +126,7 @@ export default function EditProductScreen() {
     if (product) {
       setName(product.name || '');
       setDescription(product.description || '');
+      setSku(product.sku || '');
       setCategoryId(product.categoryId || '');
       setBrandCategoryId(product.brandCategoryId || '');
       setUnitId(product.unitId || '');
@@ -125,7 +134,7 @@ export default function EditProductScreen() {
       setSellingPrice(product.sellingPrice != null ? formatAmount(product.sellingPrice) : '');
       setCurrency(product.currency as 'UZS' | 'USD' || 'UZS');
       setIsActive(product.isActive ?? true);
-      
+
       const inv = product.inventory?.[0];
       if (inv) {
         setQuantity(inv.quantity?.toString() || '0');
@@ -134,6 +143,7 @@ export default function EditProductScreen() {
         } else {
           setMinQuantity('0');
         }
+        setSupplierId((inv as any).supplierId || '');
       }
       
       if (product.imageUrl) {
@@ -148,9 +158,11 @@ export default function EditProductScreen() {
       const updatedProduct = await productsApi.update(id!, {
         name: payload.name,
         description: payload.description,
+        sku: payload.sku,
         categoryId: payload.categoryId,
         brandCategoryId: payload.brandCategoryId,
         unitId: payload.unitId,
+        supplierId: payload.supplierId,
         costPrice: payload.costPrice,
         sellingPrice: payload.sellingPrice,
         currency: payload.currency,
@@ -215,9 +227,11 @@ export default function EditProductScreen() {
     updateMutation.mutate({
       name,
       description,
+      sku: sku || undefined,
       categoryId: categoryId || undefined,
       brandCategoryId: brandCategoryId || undefined,
       unitId: unitId || undefined,
+      supplierId: supplierId || undefined,
       costPrice: parseFloat(costPrice.replace(/,/g, '')) || 0,
       sellingPrice: parseFloat(sellingPrice.replace(/,/g, '')) || 0,
       currency,
@@ -240,6 +254,10 @@ export default function EditProductScreen() {
   const unitOptions = React.useMemo(() => {
     return units?.map(u => ({ value: u.id, label: u.name })) || [];
   }, [units]);
+
+  const supplierOptions = React.useMemo(() => {
+    return suppliers?.data?.map(s => ({ value: s.id, label: s.name })) || [];
+  }, [suppliers]);
 
   const currentImageUri = newImage?.uri || existingImageUrl;
 
@@ -305,6 +323,16 @@ export default function EditProductScreen() {
             />
           </View>
 
+          <View>
+            <Text style={[styles.label, { color: text }]}>{t('products.sku')}</Text>
+            <Input
+              placeholder={t('products.placeholders.sku')}
+              value={sku}
+              onChangeText={setSku}
+              autoCapitalize="characters"
+            />
+          </View>
+
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.label, { color: text }]}>{t('products.category')}</Text>
@@ -357,12 +385,24 @@ export default function EditProductScreen() {
                 />
               </View>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.plusButton, { backgroundColor: primary + '15' }]}
               onPress={() => setIsUnitModalOpen(true)}
             >
               <Plus size={20} color={primary} strokeWidth={2.5} />
             </TouchableOpacity>
+          </View>
+
+          <View>
+            <Text style={[styles.label, { color: text }]}>{t('products.supplier')}</Text>
+            <View style={[styles.pickerContainer, { backgroundColor: card, borderColor: border }]}>
+              <NativePicker
+                value={supplierId}
+                onValueChange={setSupplierId}
+                options={supplierOptions}
+                placeholder={t('products.placeholders.selectSupplier')}
+              />
+            </View>
           </View>
 
           <View style={{ flexDirection: 'row', gap: 16 }}>

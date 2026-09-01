@@ -103,6 +103,9 @@ export default function ProductDetailScreen() {
               {product.inventoryStatus === 'low-stock' ? t('products.lowStock') : t('products.inStock')}
             </Badge>
           </View>
+          {product.sku && (
+            <Text style={{ fontSize: 12, color: muted, marginBottom: 4 }}>{t('products.sku')}: {product.sku}</Text>
+          )}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
             <Badge variant="secondary" textStyle={{ fontSize: 12, paddingVertical: 2, paddingHorizontal: 6 }}>
               {product.category?.name || t('products.uncategorized')}
