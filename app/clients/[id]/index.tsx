@@ -478,7 +478,7 @@ export default function ClientDetailScreen() {
         isVisible={isDetailSheetVisible}
         onClose={() => setIsDetailSheetVisible(false)}
         disablePanGesture={false}
-        snapPoints={[0.6]}
+        snapPoints={[0.90]}
       >
         <View>
           {/* Custom Header */}
