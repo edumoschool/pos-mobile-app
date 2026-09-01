@@ -571,11 +571,25 @@ export default function ClientDetailScreen() {
                   </Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: muted, fontSize: 13 }}>{t('clientDetail.paidAmount')}</Text>
+                  <Text style={{ color: green, fontSize: 13, fontWeight: '600' }}>
+                    {formatAmount(selectedTransaction.sale.paidAmount)} {selectedTransaction.sale.currency}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ color: muted, fontSize: 13 }}>{t('sales.summary.debt')}</Text>
                   <Text style={{ color: selectedTransaction.sale.debtAmount > 0 ? red : green, fontSize: 13, fontWeight: '600' }}>
                     {formatAmount(selectedTransaction.sale.debtAmount)} {selectedTransaction.sale.currency}
                   </Text>
                 </View>
+                {selectedTransaction.sale.user && (
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ color: muted, fontSize: 13 }}>{t('clientDetail.seller')}</Text>
+                    <Text style={{ color: text, fontSize: 13, fontWeight: '600' }}>
+                      {selectedTransaction.sale.user.fullName}
+                    </Text>
+                  </View>
+                )}
               </View>
             </TouchableOpacity>
           )}

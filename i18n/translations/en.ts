@@ -138,7 +138,9 @@ export default {
     totalAmount: "Total Balance",
     dueDate: "Due Date",
     linkedSale: "Linked Sale",
-    viewSale: "View Sale"
+    viewSale: "View Sale",
+    paidAmount: "Paid",
+    seller: "Seller"
   },
   supplierDetail: {
     title: "Supplier Details",

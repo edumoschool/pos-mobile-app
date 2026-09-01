@@ -563,6 +563,8 @@ export interface ClientTransactionSale {
   note: string | null;
   createdAt: string;
   branch?: { id: string; name: string } | null;
+  /** Staff member who made the sale */
+  user?: { id: string; fullName: string };
   items?: {
     id: string;
     quantity: number;

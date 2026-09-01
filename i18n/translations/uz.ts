@@ -138,7 +138,9 @@ export default {
     totalAmount: "Umumiy balans",
     dueDate: "Muddat",
     linkedSale: "Bog'liq sotuv",
-    viewSale: "Sotuvni ko'rish"
+    viewSale: "Sotuvni ko'rish",
+    paidAmount: "To'langan",
+    seller: "Sotuvchi"
   },
   supplierDetail: {
     title: "Ta'minotchi ma'lumotlari",

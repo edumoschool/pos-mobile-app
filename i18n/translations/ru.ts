@@ -138,7 +138,9 @@ export default {
     totalAmount: "Общий баланс",
     dueDate: "Срок погашения",
     linkedSale: "Связанная продажа",
-    viewSale: "Открыть продажу"
+    viewSale: "Открыть продажу",
+    paidAmount: "Оплачено",
+    seller: "Продавец"
   },
   supplierDetail: {
     title: "Данные поставщика",
