@@ -20,18 +20,21 @@ import {
 
 import { Text } from '@/components/ui/text';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ModeToggle } from '@/components/ui/mode-toggle';
-import { useActionSheet } from '@/components/ui/action-sheet';
+import { Switch } from '@/components/ui/switch';
+import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
+import { Button } from '@/components/ui/button';
 import { useColor } from '@/hooks/useColor';
 import { useAuth } from '@/hooks/useAuth';
 import { usePinLock } from '@/hooks/usePinLock';
+import { useModeToggle } from '@/hooks/useModeToggle';
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { hasPin } = usePinLock();
-  const logoutSheet = useActionSheet();
+  const { isDark, setMode } = useModeToggle();
+  const logoutSheet = useBottomSheet();
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -88,19 +91,12 @@ export default function SettingsScreen() {
   ];
 
   const handleLogoutPress = () => {
-    logoutSheet.show({
-      title: t('settings.rows.logout'),
-      message: t('settings.logoutConfirm'),
-      cancelButtonTitle: t('common.cancel'),
-      options: [
-        {
-          title: t('settings.rows.logout'),
-          destructive: true,
-          onPress: logout,
-          icon: <LogOut size={18} color={red} />,
-        },
-      ],
-    });
+    logoutSheet.open();
+  };
+
+  const handleLogoutConfirm = () => {
+    logoutSheet.close();
+    logout();
   };
 
   return (
@@ -189,7 +185,7 @@ export default function SettingsScreen() {
               <Palette size={16} color={primary} />
             </View>
             <Text style={{ flex: 1, fontSize: 15, color: text, fontWeight: '500' }}>{t('settings.rows.theme')}</Text>
-            <ModeToggle />
+            <Switch value={isDark} onValueChange={(v) => setMode(v ? 'dark' : 'light')} />
           </View>
         </View>
 
@@ -213,7 +209,34 @@ export default function SettingsScreen() {
         {Platform.OS === 'web' && <View style={{ height: 40 }} />}
       </ScrollView>
 
-      {logoutSheet.ActionSheet}
+      <BottomSheet
+        isVisible={logoutSheet.isVisible}
+        onClose={logoutSheet.close}
+        title={t('settings.rows.logout')}
+        disablePanGesture
+        snapPoints={[0.5]}
+      >
+        <Text style={{ fontSize: 14, color: muted, textAlign: 'center', lineHeight: 20, marginBottom: 20 }}>
+          {t('settings.logoutConfirm')}
+        </Text>
+        <View style={{ gap: 10 }}>
+          <Button
+            variant="destructive"
+            icon={LogOut}
+            onPress={handleLogoutConfirm}
+            style={{ width: '100%' }}
+          >
+            {t('settings.rows.logout')}
+          </Button>
+          <Button
+            variant="secondary"
+            onPress={logoutSheet.close}
+            style={{ width: '100%' }}
+          >
+            {t('common.cancel')}
+          </Button>
+        </View>
+      </BottomSheet>
     </View>
   );
 }
