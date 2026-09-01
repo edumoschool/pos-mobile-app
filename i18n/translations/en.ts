@@ -136,7 +136,9 @@ export default {
     transactionDetails: "Transaction Details",
     deleteTxConfirmation: "Are you sure you want to delete this transaction?",
     totalAmount: "Total Balance",
-    dueDate: "Due Date"
+    dueDate: "Due Date",
+    linkedSale: "Linked Sale",
+    viewSale: "View Sale"
   },
   supplierDetail: {
     title: "Supplier Details",
@@ -226,9 +228,11 @@ export default {
     placeholders: {
       name: "Enter product name",
       description: "Enter product description",
+      sku: "Enter barcode / SKU (optional)",
       selectCategory: "Select category",
       selectBrandCategory: "Select brand category",
       selectUnit: "Select unit",
+      selectSupplier: "Select supplier",
       searchCategory: "Search category...",
       searchBrand: "Search brand..."
     },

@@ -136,7 +136,9 @@ export default {
     transactionDetails: "Детали транзакции",
     deleteTxConfirmation: "Вы уверены, что хотите удалить эту транзакцию?",
     totalAmount: "Общий баланс",
-    dueDate: "Срок погашения"
+    dueDate: "Срок погашения",
+    linkedSale: "Связанная продажа",
+    viewSale: "Открыть продажу"
   },
   supplierDetail: {
     title: "Данные поставщика",
@@ -226,9 +228,11 @@ export default {
     placeholders: {
       name: "Введите название товара",
       description: "Введите описание товара",
+      sku: "Введите штрих-код / SKU (необязательно)",
       selectCategory: "Выберите категорию",
       selectBrandCategory: "Выберите категорию бренда",
       selectUnit: "Выберите единицу измерения",
+      selectSupplier: "Выберите поставщика",
       searchCategory: "Поиск категории...",
       searchBrand: "Поиск бренда..."
     },

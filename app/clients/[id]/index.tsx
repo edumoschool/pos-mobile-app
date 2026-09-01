@@ -537,6 +537,49 @@ export default function ClientDetailScreen() {
             )}
           </View>
 
+          {/* Linked Sale */}
+          {selectedTransaction?.sale && (
+            <TouchableOpacity
+              style={{ backgroundColor: bg, borderRadius: 16, padding: 16, marginBottom: 24 }}
+              onPress={() => {
+                setIsDetailSheetVisible(false);
+                router.push(`/sales/${selectedTransaction.sale!.id}` as any);
+              }}
+            >
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <Text style={{ fontWeight: '700', color: text }}>{t('clientDetail.linkedSale')}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                  <Text style={{ color: primary, fontWeight: '600', fontSize: 13 }}>{t('clientDetail.viewSale')}</Text>
+                  <ChevronRight size={16} color={primary} />
+                </View>
+              </View>
+
+              {selectedTransaction.sale.items?.map((it) => (
+                <View key={it.id} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <Text style={{ color: text, fontSize: 13, flex: 1 }} numberOfLines={1}>
+                    {it.product?.name || '-'} × {it.quantity}
+                  </Text>
+                  <Text style={{ color: muted, fontSize: 13 }}>{formatAmount(it.totalPrice)}</Text>
+                </View>
+              ))}
+
+              <View style={{ borderTopWidth: 1, borderTopColor: border, marginTop: 8, paddingTop: 8, gap: 6 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: muted, fontSize: 13 }}>{t('sales.summary.revenue')}</Text>
+                  <Text style={{ color: text, fontSize: 13, fontWeight: '600' }}>
+                    {formatAmount(selectedTransaction.sale.totalAmount)} {selectedTransaction.sale.currency}
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                  <Text style={{ color: muted, fontSize: 13 }}>{t('sales.summary.debt')}</Text>
+                  <Text style={{ color: selectedTransaction.sale.debtAmount > 0 ? red : green, fontSize: 13, fontWeight: '600' }}>
+                    {formatAmount(selectedTransaction.sale.debtAmount)} {selectedTransaction.sale.currency}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+
           <Button
             variant="secondary"
             onPress={() => setIsDetailSheetVisible(false)}

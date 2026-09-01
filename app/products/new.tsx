@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
 import { categoriesApi, brandCategoriesApi, unitsApi } from '@/api/catalog';
+import { suppliersApi } from '@/api/partners';
 import { getApiErrorMessage } from '@/api/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -59,9 +60,11 @@ export default function AddProductScreen() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [sku, setSku] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [brandCategoryId, setBrandCategoryId] = useState('');
   const [unitId, setUnitId] = useState('');
+  const [supplierId, setSupplierId] = useState('');
   const [costPrice, setCostPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [currency, setCurrency] = useState<'UZS' | 'USD'>('UZS');
@@ -95,6 +98,11 @@ export default function AddProductScreen() {
   const { data: units } = useQuery({
     queryKey: ['units'],
     queryFn: () => unitsApi.getAll(),
+  });
+
+  const { data: suppliers } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => suppliersApi.getAll({ limit: 100 }),
   });
 
   const createMutation = useMutation({
@@ -136,9 +144,11 @@ export default function AddProductScreen() {
     createMutation.mutate({
       name,
       description,
+      sku: sku || undefined,
       categoryId: categoryId || undefined,
       brandCategoryId: brandCategoryId || undefined,
       unitId: unitId || undefined,
+      supplierId: supplierId || undefined,
       costPrice: parseFloat(costPrice.replace(/,/g, '')) || 0,
       sellingPrice: parseFloat(sellingPrice.replace(/,/g, '')) || 0,
       currency,
@@ -158,6 +168,10 @@ export default function AddProductScreen() {
   const unitOptions = React.useMemo(() => {
     return units?.map(u => ({ value: u.id, label: u.name })) || [];
   }, [units]);
+
+  const supplierOptions = React.useMemo(() => {
+    return suppliers?.data?.map(s => ({ value: s.id, label: s.name })) || [];
+  }, [suppliers]);
 
   return (
     <>
@@ -213,6 +227,16 @@ export default function AddProductScreen() {
             />
           </View>
 
+          <View>
+            <Text style={styles.label}>{t('products.sku')}</Text>
+            <Input
+              placeholder={t('products.placeholders.sku')}
+              value={sku}
+              onChangeText={setSku}
+              autoCapitalize="characters"
+            />
+          </View>
+
           <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>{t('products.category')}</Text>
@@ -265,12 +289,24 @@ export default function AddProductScreen() {
                 />
               </View>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.plusButton, { backgroundColor: primary + '15' }]}
               onPress={() => setIsUnitModalOpen(true)}
             >
               <Plus size={20} color={primary} strokeWidth={2.5} />
             </TouchableOpacity>
+          </View>
+
+          <View>
+            <Text style={styles.label}>{t('products.supplier')}</Text>
+            <View style={[styles.pickerContainer, { backgroundColor: card, borderColor: border }]}>
+              <NativePicker
+                value={supplierId}
+                onValueChange={setSupplierId}
+                options={supplierOptions}
+                placeholder={t('products.placeholders.selectSupplier')}
+              />
+            </View>
           </View>
 
           <View style={{ flexDirection: 'row', gap: 16 }}>
