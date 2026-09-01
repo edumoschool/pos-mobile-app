@@ -21,7 +21,7 @@ import {
 import { Text } from '@/components/ui/text';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ModeToggle } from '@/components/ui/mode-toggle';
-import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
+import { useActionSheet } from '@/components/ui/action-sheet';
 import { useColor } from '@/hooks/useColor';
 import { useAuth } from '@/hooks/useAuth';
 import { usePinLock } from '@/hooks/usePinLock';
@@ -31,7 +31,7 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { user, logout } = useAuth();
   const { hasPin } = usePinLock();
-  const logoutDialog = useAlertDialog();
+  const logoutSheet = useActionSheet();
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -86,6 +86,22 @@ export default function SettingsScreen() {
       ],
     },
   ];
+
+  const handleLogoutPress = () => {
+    logoutSheet.show({
+      title: t('settings.rows.logout'),
+      message: t('settings.logoutConfirm'),
+      cancelButtonTitle: t('common.cancel'),
+      options: [
+        {
+          title: t('settings.rows.logout'),
+          destructive: true,
+          onPress: logout,
+          icon: <LogOut size={18} color={red} />,
+        },
+      ],
+    });
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
@@ -179,7 +195,7 @@ export default function SettingsScreen() {
 
         {/* Logout */}
         <TouchableOpacity
-          onPress={logoutDialog.open}
+          onPress={handleLogoutPress}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -197,15 +213,7 @@ export default function SettingsScreen() {
         {Platform.OS === 'web' && <View style={{ height: 40 }} />}
       </ScrollView>
 
-      <AlertDialog
-        isVisible={logoutDialog.isVisible}
-        onClose={logoutDialog.close}
-        title={t('settings.rows.logout')}
-        description={t('settings.logoutConfirm')}
-        confirmText={t('settings.rows.logout')}
-        cancelText={t('common.cancel')}
-        onConfirm={logout}
-      />
+      {logoutSheet.ActionSheet}
     </View>
   );
 }

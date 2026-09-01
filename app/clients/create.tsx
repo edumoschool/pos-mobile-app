@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { router } from 'expo-router';
@@ -7,8 +7,10 @@ import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { useToast } from '@/components/ui/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientsApi } from '@/api/partners';
+import { getApiErrorMessage } from '@/api/client';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
 import { User, Phone, UserPlus } from 'lucide-react-native';
@@ -16,6 +18,7 @@ import { User, Phone, UserPlus } from 'lucide-react-native';
 export default function CreateClientScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { error: showError } = useToast();
 
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
@@ -36,7 +39,7 @@ export default function CreateClientScreen() {
       router.navigate({ pathname: '/(tabs)/(home)', params: { tab: '0' } });
     },
     onError: (error: any) => {
-      Alert.alert(t('common.error'), error?.message || t('common.somethingWentWrong'));
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -68,7 +71,7 @@ export default function CreateClientScreen() {
           }
         }
       } else {
-        Alert.alert(t('common.error'), t('home.contactPermissionError'));
+        showError(t('common.error'), t('home.contactPermissionError'));
       }
     } catch (error) {
       console.log('Error picking contact:', error);

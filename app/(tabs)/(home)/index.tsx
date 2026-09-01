@@ -8,7 +8,6 @@ import {
   useColorScheme,
   Text as RNText,
   ActivityIndicator,
-  Alert,
   Linking,
   RefreshControl,
 } from 'react-native';
@@ -33,6 +32,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SearchBar } from '@/components/ui/searchbar';
 import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
+import { useToast } from '@/components/ui/toast';
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { clientsApi, suppliersApi } from '@/api/partners';
 import { exchangeRatesApi } from '@/api/exchange-rates';
@@ -48,6 +48,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { error: showError } = useToast();
   const listRef = useRef<any>(null);
   // Suppliers and staff are owner/super_admin-only — the backend enforces
   // this too (403), this just keeps sellers from ever seeing the tabs.
@@ -254,7 +255,7 @@ export default function HomeScreen() {
     },
     onError: (error: any) => {
       console.error('Export error:', error);
-      Alert.alert(t('common.error'), t('common.exportError'));
+      showError(t('common.error'), t('common.exportError'));
     }
   });
 

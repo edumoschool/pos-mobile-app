@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -7,8 +7,11 @@ import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
+import { useToast } from '@/components/ui/toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { clientsApi } from '@/api/partners';
+import { getApiErrorMessage } from '@/api/client';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
 import { User, MapPin } from 'lucide-react-native';
@@ -17,6 +20,8 @@ export default function EditClientScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { error: showError } = useToast();
+  const deleteDialog = useAlertDialog();
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -58,7 +63,7 @@ export default function EditClientScreen() {
       router.back();
     },
     onError: (error: any) => {
-      Alert.alert(t('common.error'), error?.message || t('common.somethingWentWrong'));
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -70,7 +75,8 @@ export default function EditClientScreen() {
       router.replace('/(tabs)/(home)' as any);
     },
     onError: (error: any) => {
-      Alert.alert(t('common.error'), error?.message || t('common.somethingWentWrong'));
+      deleteDialog.close();
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -85,14 +91,7 @@ export default function EditClientScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      t('common.warning'),
-      t('products.deleteConfirmation'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.delete'), style: 'destructive', onPress: () => deleteMutation.mutate() }
-      ]
-    );
+    deleteDialog.open();
   };
 
   const handlePickContact = async () => {
@@ -215,6 +214,17 @@ export default function EditClientScreen() {
           </Button>
         </View>
       </ScrollView>
+
+      <AlertDialog
+        isVisible={deleteDialog.isVisible}
+        onClose={deleteDialog.close}
+        title={t('common.warning')}
+        description={t('products.deleteConfirmation')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        onConfirm={() => deleteMutation.mutate()}
+      />
+
       <AvoidKeyboard offset={20} />
     </View>
   );

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -10,14 +10,15 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Plus, Filter, ArrowDown, ArrowUp, PieChart } from 'lucide-react-native';
+import { Plus, Filter, ArrowDown, ArrowUp, PieChart, Check } from 'lucide-react-native';
 import { FlashList } from '@shopify/flash-list';
 
 import { Text } from '@/components/ui/text';
+import { Popover, PopoverTrigger, PopoverContent, PopoverBody } from '@/components/ui/popover';
 import { useColor } from '@/hooks/useColor';
 import { transactionsApi } from '@/api/transactions';
 import { reportsApi } from '@/api/reports';
-import { Transaction } from '@/types';
+import { Transaction, TransactionType } from '@/types';
 import { formatAmount } from '@/lib/utils';
 import { useRouter } from 'expo-router';
 
@@ -32,6 +33,8 @@ function groupByDay(transactions: Transaction[], locale: string): { title: strin
 }
 
 type ListItem = { kind: 'header'; title: string } | { kind: 'tx'; tx: Transaction; isFirst: boolean; isLast: boolean };
+
+const TYPE_FILTERS: (TransactionType | 'all')[] = ['all', 'income', 'expense'];
 
 export default function TransactionsScreen() {
   const { t, i18n } = useTranslation();
@@ -48,6 +51,10 @@ export default function TransactionsScreen() {
   const red = useColor('red');
   const blue = useColor('blue');
 
+  const [showSummary, setShowSummary] = useState(true);
+  const [showFilter, setShowFilter] = useState(false);
+  const [type, setType] = useState<TransactionType | 'all'>('all');
+
   // ── Queries ──────────────────────────────────────────────────────────────
   const { data: summary } = useQuery({
     queryKey: ['financial-summary'],
@@ -63,11 +70,12 @@ export default function TransactionsScreen() {
     refetch,
     isRefetching,
   } = useInfiniteQuery({
-    queryKey: ['transactions'],
+    queryKey: ['transactions', type],
     queryFn: ({ pageParam = 1 }) =>
       transactionsApi.getAll({
         page: pageParam,
         limit: 30,
+        type: type === 'all' ? undefined : type,
       }),
     getNextPageParam: (last) =>
       last.meta && last.meta.page < last.meta.totalPages ? last.meta.page + 1 : undefined,
@@ -167,43 +175,92 @@ export default function TransactionsScreen() {
 
       {/* ── Header ──────────────────────────────────────────────── */}
       <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <PieChart size={24} color={blue} />
+        <TouchableOpacity
+          onPress={() => setShowSummary((v) => !v)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <PieChart size={24} color={showSummary ? blue : muted} />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '700', color: text }}>{t('transactions.title')}</Text>
-        <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-          <Filter size={22} color={text} />
-        </TouchableOpacity>
+
+        <Popover open={showFilter} onOpenChange={setShowFilter}>
+          <PopoverTrigger asChild>
+            <TouchableOpacity hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Filter size={22} color={type !== 'all' || showFilter ? primary : text} />
+            </TouchableOpacity>
+          </PopoverTrigger>
+
+          <PopoverContent align="end" maxWidth={180} style={{ padding: 0 }}>
+            <PopoverBody style={{ padding: 6 }}>
+              {TYPE_FILTERS.map((f) => {
+                const active = type === f;
+                return (
+                  <TouchableOpacity
+                    key={f}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setType(f);
+                      setShowFilter(false);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      borderRadius: 8,
+                      backgroundColor: active ? primary + '14' : 'transparent',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: active ? primary : text,
+                        fontWeight: active ? '600' : '400',
+                      }}
+                    >
+                      {t(`transactions.${f}` as any)}
+                    </Text>
+                    {active && <Check size={16} color={primary} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
       </View>
 
       {/* ── Summary Cards ───────────────────────────────────────── */}
-      <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 10, marginBottom: 12 }}>
-        {/* Income Card */}
-        <View style={{ flex: 1, backgroundColor: green, borderRadius: 16, padding: 14, shadowColor: green, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-            <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-              <ArrowDown size={14} color="#FFFFFF" />
+      {showSummary && (
+        <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 10, marginBottom: 12 }}>
+          {/* Income Card */}
+          <View style={{ flex: 1, backgroundColor: green, borderRadius: 16, padding: 14, shadowColor: green, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+                <ArrowDown size={14} color="#FFFFFF" />
+              </View>
+              <Text style={{ flex: 1, fontSize: 13, color: 'rgba(255, 255, 255, 0.9)', fontWeight: '600' }} numberOfLines={1}>{t('transactions.totalIncome')}</Text>
             </View>
-            <Text style={{ flex: 1, fontSize: 13, color: 'rgba(255, 255, 255, 0.9)', fontWeight: '600' }} numberOfLines={1}>{t('transactions.totalIncome')}</Text>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }} numberOfLines={1} adjustsFontSizeToFit>
+              {formatAmount(summary?.totalIncome ?? 0)}
+            </Text>
           </View>
-          <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }} numberOfLines={1} adjustsFontSizeToFit>
-            {formatAmount(summary?.totalIncome ?? 0)}
-          </Text>
-        </View>
 
-        {/* Expense Card */}
-        <View style={{ flex: 1, backgroundColor: red, borderRadius: 16, padding: 14, shadowColor: red, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-            <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
-              <ArrowUp size={14} color="#FFFFFF" />
+          {/* Expense Card */}
+          <View style={{ flex: 1, backgroundColor: red, borderRadius: 16, padding: 14, shadowColor: red, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(255, 255, 255, 0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 8 }}>
+                <ArrowUp size={14} color="#FFFFFF" />
+              </View>
+              <Text style={{ flex: 1, fontSize: 13, color: 'rgba(255, 255, 255, 0.9)', fontWeight: '600' }} numberOfLines={1}>{t('transactions.totalExpense')}</Text>
             </View>
-            <Text style={{ flex: 1, fontSize: 13, color: 'rgba(255, 255, 255, 0.9)', fontWeight: '600' }} numberOfLines={1}>{t('transactions.totalExpense')}</Text>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }} numberOfLines={1} adjustsFontSizeToFit>
+              {formatAmount(summary?.totalExpenses ?? 0)}
+            </Text>
           </View>
-          <Text style={{ fontSize: 15, fontWeight: '800', color: '#FFFFFF' }} numberOfLines={1} adjustsFontSizeToFit>
-            {formatAmount(summary?.totalExpenses ?? 0)}
-          </Text>
         </View>
-      </View>
+      )}
 
 
       {/* ── List ────────────────────────────────────────────────── */}

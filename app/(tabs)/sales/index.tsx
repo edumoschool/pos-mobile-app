@@ -9,9 +9,11 @@ import {
   Plus,
   FileText,
   ChevronRight,
-  Filter
+  Filter,
+  Check
 } from 'lucide-react-native';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { Popover, PopoverTrigger, PopoverContent, PopoverBody } from '@/components/ui/popover';
 import { salesApi } from '@/api/sales';
 import { FlashList } from '@shopify/flash-list';
 import { RefreshControl } from 'react-native';
@@ -76,9 +78,53 @@ export default function SalesScreen() {
           <PieChart size={24} color={showSummary ? primary : muted} />
         </TouchableOpacity>
         <Text style={{ fontSize: 18, fontWeight: '700', color: text }}>{t('sales.title')}</Text>
-        <TouchableOpacity onPress={() => setShowFilter((v) => !v)}>
-          <Filter size={22} color={status !== 'all' || showFilter ? primary : text} />
-        </TouchableOpacity>
+
+        <Popover open={showFilter} onOpenChange={setShowFilter}>
+          <PopoverTrigger asChild>
+            <TouchableOpacity>
+              <Filter size={22} color={status !== 'all' || showFilter ? primary : text} />
+            </TouchableOpacity>
+          </PopoverTrigger>
+
+          <PopoverContent align="end" maxWidth={180} style={{ padding: 0 }}>
+            <PopoverBody style={{ padding: 6 }}>
+              {STATUS_FILTERS.map((s) => {
+                const active = status === s;
+                return (
+                  <TouchableOpacity
+                    key={s}
+                    activeOpacity={0.7}
+                    onPress={() => {
+                      setStatus(s);
+                      setShowFilter(false);
+                    }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      paddingVertical: 10,
+                      paddingHorizontal: 10,
+                      borderRadius: 8,
+                      backgroundColor: active ? primary + '14' : 'transparent',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: active ? primary : text,
+                        fontWeight: active ? '600' : '400',
+                      }}
+                    >
+                      {t(`sales.tabs.${s}` as any)}
+                    </Text>
+                    {active && <Check size={16} color={primary} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
       </View>
 
       {/* Today's summary */}
@@ -96,33 +142,6 @@ export default function SalesScreen() {
               </Text>
             </View>
           ))}
-        </View>
-      )}
-
-      {/* Status filter */}
-      {showFilter && (
-        <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, marginBottom: 12 }}>
-          {STATUS_FILTERS.map((s) => {
-            const active = status === s;
-            return (
-              <TouchableOpacity
-                key={s}
-                onPress={() => setStatus(s)}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
-                  borderRadius: 16,
-                  backgroundColor: active ? primary : card,
-                  borderWidth: 1,
-                  borderColor: active ? primary : border + '80',
-                }}
-              >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: active ? primaryForeground : muted }}>
-                  {t(`sales.tabs.${s}` as any)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
         </View>
       )}
 
@@ -201,30 +220,25 @@ export default function SalesScreen() {
                   </View>
 
                   {/* Info */}
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 }}>
-                      <Text style={{ fontSize: 15, fontWeight: '700', color: text }}>
-                        {item.id.substring(0, 8).toUpperCase()}
-                      </Text>
-                      <View style={{ backgroundColor: statusBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                        <Text style={{ color: statusColor, fontSize: 10, fontWeight: '600' }}>{displayStatus}</Text>
-                      </View>
-                    </View>
-                    <Text style={{ fontSize: 13, color: muted, marginBottom: 2 }}>{customerName}</Text>
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={{ fontSize: 15, fontWeight: '700', color: text, marginBottom: 2 }} numberOfLines={1}>
+                      {customerName}
+                    </Text>
                     <Text style={{ fontSize: 11, color: muted }}>{dateStr}</Text>
                   </View>
 
                   {/* Right */}
-                  <View style={{ alignItems: 'flex-end', justifyContent: 'center' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={{ fontSize: 15, fontWeight: '800', color: text, marginBottom: 2 }}>
-                          {formatAmount(item.totalAmount)} {item.currency}
-                        </Text>
-                        <Text style={{ fontSize: 12, color: muted }}>{t('sales.items', { count: itemsCount })}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <View style={{ backgroundColor: statusBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginBottom: 4 }}>
+                        <Text style={{ color: statusColor, fontSize: 10, fontWeight: '600' }}>{displayStatus}</Text>
                       </View>
-                      <ChevronRight size={18} color={muted} />
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: text, marginBottom: 2 }}>
+                        {formatAmount(item.totalAmount)} {item.currency}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: muted }}>{t('sales.items', { count: itemsCount })}</Text>
                     </View>
+                    <ChevronRight size={18} color={muted} />
                   </View>
                 </TouchableOpacity>
               );

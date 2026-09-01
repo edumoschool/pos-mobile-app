@@ -37,6 +37,8 @@ export default {
   common: {
     save: "Save",
     cancel: "Cancel",
+    confirm: "Confirm",
+    time: "Time",
     delete: "Delete",
     error: "Error",
     success: "Success",
@@ -336,7 +338,7 @@ export default {
       client: "Client (optional)",
       walkIn: "Walk-in customer",
       discount: "Discount",
-      fullyPaid: "Paid in full",
+      sellOnDebt: "Sell on debt",
       paidAmount: "Amount paid now",
       subtotal: "Subtotal",
       total: "Total",
@@ -369,7 +371,11 @@ export default {
       cancelSale: "Cancel Sale",
       cancelConfirm: "This restores stock and reverses any client debt. Continue?",
       cancelSuccess: "Sale cancelled",
-      linkedDebt: "Linked client transactions"
+      linkedDebt: "Linked client transactions",
+      payDebt: "Pay Debt",
+      remainingDebt: "Remaining debt",
+      confirmPayment: "Confirm Payment",
+      paySuccess: "Payment recorded"
     }
   },
   settings: {
@@ -478,7 +484,11 @@ export default {
       lockedOut: "Too many attempts",
       tryAgainIn: "Try again in {{time}}",
       attemptsRemaining_one: "{{count}} attempt remaining",
-      attemptsRemaining_other: "{{count}} attempts remaining"
+      attemptsRemaining_other: "{{count}} attempts remaining",
+      forgotPin: "Forgot PIN?",
+      forgotPinConfirmTitle: "Forgot your PIN?",
+      forgotPinConfirmMessage: "You'll be signed out and the PIN removed from this device. Log back in to set up a new one.",
+      forgotPinConfirmAction: "Log Out & Reset"
     },
     sessions: {
       revoked: "Session revoked",

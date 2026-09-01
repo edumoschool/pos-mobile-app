@@ -519,8 +519,8 @@ export default function SupplierDetailScreen() {
             )}
           </View>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="secondary"
             onPress={() => setIsDetailSheetVisible(false)}
           >
             {t('common.cancel')}
