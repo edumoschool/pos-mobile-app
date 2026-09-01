@@ -37,6 +37,8 @@ export default {
   common: {
     save: "Saqlash",
     cancel: "Bekor qilish",
+    confirm: "Tasdiqlash",
+    time: "Vaqt",
     delete: "O'chirish",
     error: "Xatolik",
     success: "Muvaffaqiyatli",
@@ -336,7 +338,7 @@ export default {
       client: "Mijoz (ixtiyoriy)",
       walkIn: "Odatiy mijoz",
       discount: "Chegirma",
-      fullyPaid: "To'liq to'landi",
+      sellOnDebt: "Qarzga sotish",
       paidAmount: "To'langan summa",
       subtotal: "Oraliq jami",
       total: "Jami",
@@ -369,7 +371,11 @@ export default {
       cancelSale: "Sotuvni bekor qilish",
       cancelConfirm: "Mahsulot omborga qaytariladi, mijoz qarzi bekor qilinadi. Davom etilsinmi?",
       cancelSuccess: "Sotuv bekor qilindi",
-      linkedDebt: "Bog'liq mijoz operatsiyalari"
+      linkedDebt: "Bog'liq mijoz operatsiyalari",
+      payDebt: "Qarzni to'lash",
+      remainingDebt: "Qolgan qarz",
+      confirmPayment: "To'lovni tasdiqlash",
+      paySuccess: "To'lov qayd etildi"
     }
   },
   settings: {
@@ -478,7 +484,11 @@ export default {
       lockedOut: "Juda ko'p urinish",
       tryAgainIn: "{{time}} dan keyin urinib ko'ring",
       attemptsRemaining_one: "{{count}} urinish qoldi",
-      attemptsRemaining_other: "{{count}} urinish qoldi"
+      attemptsRemaining_other: "{{count}} urinish qoldi",
+      forgotPin: "PINni unutdingizmi?",
+      forgotPinConfirmTitle: "PIN-kodni unutdingizmi?",
+      forgotPinConfirmMessage: "Tizimdan chiqarilasiz va bu qurilmadagi PIN o'chiriladi. Yangisini o'rnatish uchun qayta kiring.",
+      forgotPinConfirmAction: "Chiqish va tiklash"
     },
     sessions: {
       revoked: "Seans tugatildi",

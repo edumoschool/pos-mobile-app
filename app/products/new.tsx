@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router } from 'expo-router';
@@ -10,10 +10,12 @@ import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
 import { categoriesApi, brandCategoriesApi, unitsApi } from '@/api/catalog';
+import { getApiErrorMessage } from '@/api/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
 import { Header } from '@/components/ui/header';
+import { useToast } from '@/components/ui/toast';
 import { formatAmount } from '@/lib/utils';
 import { CategoryModal } from '@/components/products/category-modal';
 import { BrandCategoryModal } from '@/components/products/brand-category-modal';
@@ -53,6 +55,7 @@ function NativePicker({
 export default function AddProductScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { error: showError } = useToast();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -102,7 +105,7 @@ export default function AddProductScreen() {
       router.back();
     },
     onError: (error) => {
-      Alert.alert(t('common.error'), t('products.errors.createFailed'));
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -126,7 +129,7 @@ export default function AddProductScreen() {
 
   const handleSave = () => {
     if (!name || !sellingPrice) {
-      Alert.alert(t('common.error'), t('common.fillRequiredFields'));
+      showError(t('common.error'), t('common.fillRequiredFields'));
       return;
     }
 

@@ -86,12 +86,15 @@ export default function RootLayout() {
       <ThemeProvider>
         <QueryProvider>
           <ToastProvider>
-            <PinLockProvider>
-              <AuthProvider>
+            {/* PinLockProvider reads auth state (and calls logout() for the
+                "forgot PIN" recovery path), so it must render inside
+                AuthProvider — see hooks/usePinLock.tsx. */}
+            <AuthProvider>
+              <PinLockProvider>
                 <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} animated />
                 <RootNavigator />
-              </AuthProvider>
-            </PinLockProvider>
+              </PinLockProvider>
+            </AuthProvider>
           </ToastProvider>
         </QueryProvider>
       </ThemeProvider>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -14,6 +14,7 @@ import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { productsApi } from '@/api/products';
 import { categoriesApi, brandCategoriesApi, unitsApi } from '@/api/catalog';
+import { getApiErrorMessage } from '@/api/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
@@ -22,6 +23,7 @@ import { formatAmount } from '@/lib/utils';
 import { CategoryModal } from '@/components/products/category-modal';
 import { BrandCategoryModal } from '@/components/products/brand-category-modal';
 import { UnitModal } from '@/components/products/unit-modal';
+import { useToast } from '@/components/ui/toast';
 import { Switch } from '@/components/ui/switch';
 import { Picker } from '@react-native-picker/picker';
 
@@ -59,6 +61,7 @@ export default function EditProductScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { error: showError } = useToast();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -172,7 +175,7 @@ export default function EditProductScreen() {
       router.back();
     },
     onError: (error) => {
-      Alert.alert(t('common.error'), t('products.errors.updateFailed') || 'Failed to update product');
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -205,7 +208,7 @@ export default function EditProductScreen() {
 
   const handleSave = () => {
     if (!name || !sellingPrice) {
-      Alert.alert(t('common.error'), t('common.fillRequiredFields'));
+      showError(t('common.error'), t('common.fillRequiredFields'));
       return;
     }
 

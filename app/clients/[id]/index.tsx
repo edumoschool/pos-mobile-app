@@ -537,8 +537,8 @@ export default function ClientDetailScreen() {
             )}
           </View>
 
-          <Button 
-            variant="outline" 
+          <Button
+            variant="secondary"
             onPress={() => setIsDetailSheetVisible(false)}
           >
             {t('common.cancel')}

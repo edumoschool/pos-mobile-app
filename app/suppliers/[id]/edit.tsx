@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,8 +8,11 @@ import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
+import { useToast } from '@/components/ui/toast';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { suppliersApi } from '@/api/partners';
+import { getApiErrorMessage } from '@/api/client';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
 import { User, Phone, Edit3, Trash2, MapPin } from 'lucide-react-native';
@@ -19,6 +22,8 @@ export default function EditSupplierScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { error: showError } = useToast();
+  const deleteDialog = useAlertDialog();
 
   // Suppliers are owner/super_admin only — the backend enforces this too
   // (403), this just keeps sellers from ever reaching the form.
@@ -67,7 +72,7 @@ export default function EditSupplierScreen() {
       router.back();
     },
     onError: (error: any) => {
-      Alert.alert(t('common.error'), error?.message || t('common.somethingWentWrong'));
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -79,7 +84,8 @@ export default function EditSupplierScreen() {
       router.replace('/(tabs)/(home)' as any);
     },
     onError: (error: any) => {
-      Alert.alert(t('common.error'), error?.message || t('common.somethingWentWrong'));
+      deleteDialog.close();
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -94,14 +100,7 @@ export default function EditSupplierScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      t('common.warning'),
-      t('products.deleteConfirmation'), // Reusing product confirmation for now
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.delete'), style: 'destructive', onPress: () => deleteMutation.mutate() }
-      ]
-    );
+    deleteDialog.open();
   };
 
   const handlePickContact = async () => {
@@ -226,6 +225,17 @@ export default function EditSupplierScreen() {
           </Button>
         </View>
       </ScrollView>
+
+      <AlertDialog
+        isVisible={deleteDialog.isVisible}
+        onClose={deleteDialog.close}
+        title={t('common.warning')}
+        description={t('products.deleteConfirmation')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
+        onConfirm={() => deleteMutation.mutate()}
+      />
+
       <AvoidKeyboard offset={20} />
     </View>
   );

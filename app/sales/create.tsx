@@ -71,7 +71,7 @@ export default function CreateSaleScreen() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [currency, setCurrency] = useState<Currency>('UZS');
   const [discount, setDiscount] = useState('');
-  const [fullyPaid, setFullyPaid] = useState(true);
+  const [isDebt, setIsDebt] = useState(false);
   const [paidInput, setPaidInput] = useState('');
   const [note, setNote] = useState('');
 
@@ -102,7 +102,7 @@ export default function CreateSaleScreen() {
   );
   const discountValue = Number(discount.replace(/,/g, '')) || 0;
   const total = Math.max(0, subtotal - discountValue);
-  const paidValue = fullyPaid ? total : Number(paidInput.replace(/,/g, '')) || 0;
+  const paidValue = isDebt ? Number(paidInput.replace(/,/g, '')) || 0 : total;
   const debt = Math.max(0, total - paidValue);
 
   // ── Cart helpers ──────────────────────────────────────────────────────────
@@ -404,15 +404,15 @@ export default function CreateSaleScreen() {
             }}
           >
             <Text style={{ fontSize: 15, color: text, fontWeight: '600' }}>
-              {t('sales.pos.fullyPaid')}
+              {t('sales.pos.sellOnDebt')}
             </Text>
             <Switch
-              value={fullyPaid}
-              onValueChange={setFullyPaid}
+              value={isDebt}
+              onValueChange={setIsDebt}
             />
           </View>
 
-          {!fullyPaid && (
+          {isDebt && (
             <Input
               icon={Wallet}
               placeholder={t('sales.pos.paidAmount')}

@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Modal, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Modal, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/toast';
 import { useColor } from '@/hooks/useColor';
 import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { brandCategoriesApi } from '@/api/catalog';
+import { getApiErrorMessage } from '@/api/client';
 
 interface BrandCategoryModalProps {
   open: boolean;
@@ -17,12 +19,13 @@ interface BrandCategoryModalProps {
 export function BrandCategoryModal({ open, onOpenChange }: BrandCategoryModalProps) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
-  
+  const { error: showError } = useToast();
+
   const bg = useColor('background');
   const card = useColor('card');
   const border = useColor('border');
   const text = useColor('text');
-  
+
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
@@ -32,8 +35,8 @@ export function BrandCategoryModal({ open, onOpenChange }: BrandCategoryModalPro
       setName('');
       onOpenChange(false);
     },
-    onError: () => {
-      Alert.alert(t('common.error'), t('brandCategories.errors.createFailed'));
+    onError: (err) => {
+      showError(t('common.error'), getApiErrorMessage(err));
     }
   });
 

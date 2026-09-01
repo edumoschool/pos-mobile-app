@@ -37,6 +37,8 @@ export default {
   common: {
     save: "Сохранить",
     cancel: "Отмена",
+    confirm: "Подтвердить",
+    time: "Время",
     delete: "Удалить",
     error: "Ошибка",
     success: "Успешно",
@@ -338,7 +340,7 @@ export default {
       client: "Клиент (необязательно)",
       walkIn: "Обычный клиент",
       discount: "Скидка",
-      fullyPaid: "Оплачено полностью",
+      sellOnDebt: "Продать в долг",
       paidAmount: "Сумма оплаты",
       subtotal: "Подытог",
       total: "Итого",
@@ -371,7 +373,11 @@ export default {
       cancelSale: "Отменить продажу",
       cancelConfirm: "Товар вернётся на склад, долг клиента будет отменён. Продолжить?",
       cancelSuccess: "Продажа отменена",
-      linkedDebt: "Связанные операции клиента"
+      linkedDebt: "Связанные операции клиента",
+      payDebt: "Погасить долг",
+      remainingDebt: "Остаток долга",
+      confirmPayment: "Подтвердить оплату",
+      paySuccess: "Оплата зафиксирована"
     }
   },
   settings: {
@@ -482,7 +488,11 @@ export default {
       attemptsRemaining_one: "Осталась {{count}} попытка",
       attemptsRemaining_few: "Осталось {{count}} попытки",
       attemptsRemaining_many: "Осталось {{count}} попыток",
-      attemptsRemaining_other: "Осталось {{count}} попыток"
+      attemptsRemaining_other: "Осталось {{count}} попыток",
+      forgotPin: "Забыли PIN?",
+      forgotPinConfirmTitle: "Забыли PIN-код?",
+      forgotPinConfirmMessage: "Вы выйдете из аккаунта, а PIN на этом устройстве будет удалён. Войдите снова, чтобы задать новый.",
+      forgotPinConfirmAction: "Выйти и сбросить"
     },
     sessions: {
       revoked: "Сеанс завершён",

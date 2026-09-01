@@ -9,17 +9,33 @@ import React, {
   useState,
 } from 'react';
 import { AppState, AppStateStatus, Platform } from 'react-native';
+import { useAuth } from './useAuth';
 
 /**
  * Local app-lock. A 4-digit PIN is kept in the device keychain / keystore
  * (expo-secure-store) — never sent anywhere. When a PIN is set the app shows
- * a lock gate on cold start and whenever it returns from the background after
- * more than LOCK_GRACE_MS.
+ * a lock gate on cold start (if there's still a logged-in session) and
+ * whenever it returns from the background after more than LOCK_GRACE_MS.
  *
  * A 4-digit PIN is only 10k combinations, so the keychain alone is not the
  * control that matters — throttling is. Failed attempts are counted in the
  * same secure storage and impose an escalating lockout that survives an app
  * restart, which is what stops someone simply relaunching to keep guessing.
+ *
+ * The gate is tied to auth state (this provider must render inside
+ * AuthProvider — see app/_layout.tsx):
+ *  - It never shows while logged out. There's no session behind it to
+ *    protect, so it would just be a pointless extra step before the login
+ *    screen — and it always resolves the moment auth's own bootstrap check
+ *    finishes, not before, so a stale flag can't flash the gate on either.
+ *  - Logging out (for any reason — the Settings button, a 401, or the
+ *    "forgot PIN" recovery below) clears the *gate*, not the *PIN*. A normal
+ *    logout leaves the stored PIN alone, so logging back in on the same
+ *    device still asks for the same PIN next time, no re-setup needed.
+ *  - The one path that *does* erase the stored PIN is `forgotPin()`: if you
+ *    can't get past the gate, that's the only way through it, and it signs
+ *    you out (via AuthProvider's own logout, not a copy of it) as part of
+ *    resetting it — you set up a fresh PIN after logging back in.
  */
 
 const PIN_KEY = 'pos_app_pin';
@@ -122,11 +138,20 @@ interface PinLockContextType {
   unlock: (pin: string) => boolean;
   /** force the gate on (e.g. from a "lock now" button) */
   lock: () => void;
+  /**
+   * Recovery for a forgotten PIN: erases the stored PIN and lockout state,
+   * then signs the user out. Unlike a normal logout (which deliberately
+   * leaves the PIN alone), this is the one path that clears it — there is no
+   * other way to get past the gate without knowing it.
+   */
+  forgotPin: () => Promise<void>;
 }
 
 const PinLockContext = createContext<PinLockContextType | null>(null);
 
 export function PinLockProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading: authLoading, logout } = useAuth();
+
   const [isReady, setIsReady] = useState(false);
   const [pin, setPin] = useState<string | null>(null);
   const [isLocked, setIsLocked] = useState(false);
@@ -137,6 +162,8 @@ export function PinLockProvider({ children }: { children: React.ReactNode }) {
   const backgroundedAt = useRef<number | null>(null);
 
   // ── Load persisted state once ────────────────────────────────────────
+  // Deciding whether to actually *lock* is a separate step below — it needs
+  // to know auth has resolved too, which lands on its own schedule.
   useEffect(() => {
     (async () => {
       const [stored, attempts, until] = await Promise.all([
@@ -145,12 +172,34 @@ export function PinLockProvider({ children }: { children: React.ReactNode }) {
         readItem(LOCKED_UNTIL_KEY),
       ]);
       setPin(stored);
-      setIsLocked(!!stored); // cold start → locked when a PIN exists
       setFailedAttempts(Number(attempts) || 0);
       setLockedUntil(Number(until) || 0);
       setIsReady(true);
     })();
   }, []);
+
+  // ── Engage the gate once, on cold start, if there's a session to protect ──
+  // Runs the instant both the PIN (above) and auth's own bootstrap check have
+  // resolved, in whichever order they finish — but only ever once: a later
+  // *interactive* login never re-triggers this (see the ref guard), which is
+  // what keeps a fresh sign-in from immediately re-prompting for the PIN it
+  // has nothing to do with.
+  const hasEngagedStartupLock = useRef(false);
+  useEffect(() => {
+    if (!isReady || authLoading || hasEngagedStartupLock.current) return;
+    hasEngagedStartupLock.current = true;
+    if (isAuthenticated && pin) setIsLocked(true);
+  }, [isReady, authLoading, isAuthenticated, pin]);
+
+  // ── Drop the gate the moment the session ends ─────────────────────────
+  // Logging out — deliberately, via a 401, or via forgotPin() below — must
+  // never leave the gate showing over the login screen, and must not leak a
+  // stale "locked" flag into the next sign-in either.
+  const wasAuthenticated = useRef(isAuthenticated);
+  useEffect(() => {
+    if (wasAuthenticated.current && !isAuthenticated) setIsLocked(false);
+    wasAuthenticated.current = isAuthenticated;
+  }, [isAuthenticated]);
 
   // ── Tick while locked out so the countdown stays live ────────────────
   const isLockedOut = lockedUntil > now;
@@ -172,13 +221,13 @@ export function PinLockProvider({ children }: { children: React.ReactNode }) {
         // Re-read the clock on resume: a lockout that expired while the app
         // was away should be released, and one that has not must stay.
         setNow(Date.now());
-        if (pin && since != null && Date.now() - since >= LOCK_GRACE_MS) {
+        if (isAuthenticated && pin && since != null && Date.now() - since >= LOCK_GRACE_MS) {
           setIsLocked(true);
         }
       }
     });
     return () => sub.remove();
-  }, [pin]);
+  }, [isAuthenticated, pin]);
 
   const resetAttempts = useCallback(() => {
     setFailedAttempts(0);
@@ -257,11 +306,26 @@ export function PinLockProvider({ children }: { children: React.ReactNode }) {
     if (pin) setIsLocked(true);
   }, [pin]);
 
+  const forgotPin = useCallback(async () => {
+    await deleteItem(PIN_KEY);
+    setPin(null);
+    setIsLocked(false);
+    resetAttempts();
+    // AuthProvider's own logout, not a reimplementation — clears the session
+    // (revokes the token server-side, drops the push token, redirects to
+    // login) the exact same way the Settings "Log out" button does.
+    await logout();
+  }, [logout, resetAttempts]);
+
   const value = useMemo<PinLockContextType>(
     () => ({
       isReady,
       hasPin: !!pin,
-      isLocked,
+      // Gated on isAuthenticated as a hard invariant, not just a side effect
+      // of the effects above never *setting* it while logged out — this way
+      // the gate genuinely cannot render without a session behind it, no
+      // matter which path got isLocked out of sync.
+      isLocked: isLocked && isAuthenticated,
       failedAttempts,
       attemptsRemaining: isLockedOut ? 0 : Math.max(0, MAX_ATTEMPTS - failedAttempts),
       lockoutRemainingMs: isLockedOut ? lockedUntil - now : 0,
@@ -272,11 +336,13 @@ export function PinLockProvider({ children }: { children: React.ReactNode }) {
       verifyPin,
       unlock,
       lock,
+      forgotPin,
     }),
     [
       isReady,
       pin,
       isLocked,
+      isAuthenticated,
       failedAttempts,
       isLockedOut,
       lockedUntil,
@@ -287,6 +353,7 @@ export function PinLockProvider({ children }: { children: React.ReactNode }) {
       verifyPin,
       unlock,
       lock,
+      forgotPin,
     ]
   );
 

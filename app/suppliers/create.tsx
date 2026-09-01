@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, TouchableOpacity, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,8 +8,10 @@ import { Header } from '@/components/ui/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AvoidKeyboard } from '@/components/ui/avoid-keyboard';
+import { useToast } from '@/components/ui/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { suppliersApi } from '@/api/partners';
+import { getApiErrorMessage } from '@/api/client';
 import { useTranslation } from 'react-i18next';
 import * as Contacts from 'expo-contacts';
 import { User, Phone, UserPlus, Truck } from 'lucide-react-native';
@@ -18,6 +20,7 @@ export default function CreateSupplierScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { error: showError } = useToast();
 
   // Suppliers are owner/super_admin only — the backend enforces this too
   // (403), this just keeps sellers from ever reaching the form.
@@ -45,7 +48,7 @@ export default function CreateSupplierScreen() {
       router.navigate({ pathname: '/(tabs)/(home)', params: { tab: '1' } });
     },
     onError: (error: any) => {
-      Alert.alert(t('common.error'), error?.message || t('common.somethingWentWrong'));
+      showError(t('common.error'), getApiErrorMessage(error));
     }
   });
 
@@ -77,7 +80,7 @@ export default function CreateSupplierScreen() {
           }
         }
       } else {
-        Alert.alert(t('common.error'), t('home.contactPermissionError'));
+        showError(t('common.error'), t('home.contactPermissionError'));
       }
     } catch (error) {
       console.log('Error picking contact:', error);

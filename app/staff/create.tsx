@@ -20,9 +20,9 @@ import { getApiErrorMessage } from '@/api/client';
 import type { CreateUserPayload, Language, UserRole } from '@/types';
 
 const LANGUAGES: { label: string; value: Language }[] = [
-  { label: '🇺🇸 English', value: 'en' },
-  { label: "🇺🇿 O'zbekcha", value: 'uz' },
-  { label: '🇷🇺 Русский', value: 'ru' },
+  { label: 'English', value: 'en' },
+  { label: "O'zbekcha", value: 'uz' },
+  { label: 'Русский', value: 'ru' },
 ];
 
 export default function CreateStaffScreen() {

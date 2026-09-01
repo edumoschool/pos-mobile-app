@@ -1,10 +1,11 @@
 import { PinPad } from '@/components/pin-pad';
+import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { PIN_LENGTH, usePinLock } from '@/hooks/usePinLock';
 import { Lock, ShieldAlert } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -24,8 +25,15 @@ function formatCountdown(ms: number): string {
 export function PinLockScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { unlock, attemptsRemaining, isLockedOut, lockoutRemainingMs, failedAttempts } =
-    usePinLock();
+  const {
+    unlock,
+    forgotPin,
+    attemptsRemaining,
+    isLockedOut,
+    lockoutRemainingMs,
+    failedAttempts,
+  } = usePinLock();
+  const forgotDialog = useAlertDialog();
 
   const bg = useColor('background');
   const primary = useColor('primary');
@@ -34,6 +42,20 @@ export function PinLockScreen() {
 
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
+  const [resetting, setResetting] = useState(false);
+
+  const handleForgotPin = async () => {
+    setResetting(true);
+    try {
+      await forgotPin();
+      // No navigation call here: forgotPin() logs out, which drops
+      // isAuthenticated, which is what makes this screen itself unmount —
+      // AuthProvider's own route guard sends the app to /login.
+    } finally {
+      forgotDialog.close();
+      setResetting(false);
+    }
+  };
 
   useEffect(() => {
     if (value.length !== PIN_LENGTH) {
@@ -86,7 +108,7 @@ export function PinLockScreen() {
         title={t('settings.security.enterPin')}
         subtitle={t('settings.security.enterPinSubtitle')}
         error={error}
-        disabled={isLockedOut}
+        disabled={isLockedOut || resetting}
         footer={
           isLockedOut ? (
             <Animated.View entering={FadeIn.duration(200)} style={{ alignItems: 'center' }}>
@@ -116,7 +138,28 @@ export function PinLockScreen() {
         }
       />
 
+      <Pressable
+        onPress={forgotDialog.open}
+        disabled={resetting}
+        hitSlop={12}
+        style={{ marginTop: 24, opacity: resetting ? 0.5 : 1 }}
+      >
+        <Text style={{ color: primary, fontSize: 14, fontWeight: '600' }}>
+          {t('settings.security.forgotPin')}
+        </Text>
+      </Pressable>
+
       <View style={{ flex: 1 }} />
+
+      <AlertDialog
+        isVisible={forgotDialog.isVisible}
+        onClose={forgotDialog.close}
+        title={t('settings.security.forgotPinConfirmTitle')}
+        description={t('settings.security.forgotPinConfirmMessage')}
+        confirmText={t('settings.security.forgotPinConfirmAction')}
+        cancelText={t('common.cancel')}
+        onConfirm={handleForgotPin}
+      />
     </View>
   );
 }

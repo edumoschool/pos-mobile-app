@@ -538,6 +538,12 @@ export interface ClientTransaction {
 
 export interface CreateClientTransactionPayload {
   clientId: string;
+  /**
+   * Debt sale this payment settles. `type` must be `'income'`; the amount is
+   * applied to that sale's `paidAmount`/`debtAmount` (capped at what's still
+   * owed) instead of only affecting the client's overall balance.
+   */
+  saleId?: string;
   /** income = client pays us; outcome = debt issued to client */
   type: PartyTransactionType;
   amount: number;

@@ -1,19 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Ban, User, Calendar, Wallet, Package, ChevronRight } from 'lucide-react-native';
+import { Ban, User, Calendar, Wallet, Package, ChevronRight, Banknote } from 'lucide-react-native';
 
 import { Text } from '@/components/ui/text';
 import { useColor } from '@/hooks/useColor';
 import { Header } from '@/components/ui/header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Picker } from '@/components/ui/picker';
+import { BottomSheet, useBottomSheet } from '@/components/ui/bottom-sheet';
 import { AlertDialog, useAlertDialog } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/toast';
 import { salesApi } from '@/api/sales';
+import { clientTransactionsApi } from '@/api/party-transactions';
 import { getApiErrorMessage } from '@/api/client';
 import { formatAmount } from '@/lib/utils';
+import type { PaymentMethod } from '@/types';
 
 export default function SaleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,6 +26,9 @@ export default function SaleDetailScreen() {
   const qc = useQueryClient();
   const { success: showSuccess, error: showError } = useToast();
   const { isVisible, open: openCancel, close: closeCancel } = useAlertDialog();
+  const payDebt = useBottomSheet();
+  const [payAmount, setPayAmount] = useState('');
+  const [payMethod, setPayMethod] = useState<PaymentMethod>('cash');
 
   const bg = useColor('background');
   const card = useColor('card');
@@ -55,6 +63,36 @@ export default function SaleDetailScreen() {
       showError(t('common.error'), getApiErrorMessage(err));
     },
   });
+
+  const payMutation = useMutation({
+    mutationFn: () =>
+      clientTransactionsApi.create({
+        clientId: sale!.client!.id,
+        saleId: sale!.id,
+        type: 'income',
+        amount: Number(payAmount.replace(/,/g, '')),
+        currency: sale!.currency,
+        paymentMethod: payMethod,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['sales'] });
+      qc.invalidateQueries({ queryKey: ['sale', id] });
+      qc.invalidateQueries({ queryKey: ['sales-summary'] });
+      qc.invalidateQueries({ queryKey: ['client-balance', sale?.client?.id] });
+      qc.invalidateQueries({ queryKey: ['client-transactions'] });
+      payDebt.close();
+      showSuccess(t('common.success'), t('sales.detail.paySuccess'));
+    },
+    onError: (err) => {
+      showError(t('common.error'), getApiErrorMessage(err));
+    },
+  });
+
+  const openPayDebt = () => {
+    setPayAmount(sale ? formatAmount(sale.debtAmount) : '');
+    setPayMethod('cash');
+    payDebt.open();
+  };
 
   if (isLoading) {
     return (
@@ -214,7 +252,12 @@ export default function SaleDetailScreen() {
       </ScrollView>
 
       {sale.status !== 'cancelled' && (
-        <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, backgroundColor: bg }}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 16, backgroundColor: bg, gap: 10 }}>
+          {sale.status === 'debt' && sale.client && Number(sale.debtAmount) > 0 && (
+            <Button icon={Banknote} onPress={openPayDebt}>
+              {t('sales.detail.payDebt')}
+            </Button>
+          )}
           <Button variant="destructive" icon={Ban} onPress={openCancel} loading={cancelMutation.isPending}>
             {t('sales.detail.cancelSale')}
           </Button>
@@ -230,6 +273,49 @@ export default function SaleDetailScreen() {
         cancelText={t('common.cancel')}
         onConfirm={() => cancelMutation.mutate()}
       />
+
+      <BottomSheet
+        isVisible={payDebt.isVisible}
+        onClose={payDebt.close}
+        title={t('sales.detail.payDebt')}
+        snapPoints={[0.55]}
+      >
+        <View style={{ gap: 16, paddingTop: 10 }}>
+          <Text style={{ fontSize: 13, color: muted }}>
+            {t('sales.detail.remainingDebt')}: {formatAmount(sale.debtAmount)} {currency}
+          </Text>
+
+          <Input
+            label={t('sales.pos.paidAmount')}
+            placeholder="0"
+            value={payAmount}
+            onChangeText={(v) => setPayAmount(formatAmount(v))}
+            keyboardType="decimal-pad"
+            variant="outline"
+          />
+
+          <Picker
+            label={t('common.paymentMethod')}
+            value={payMethod}
+            onValueChange={(v) => setPayMethod(v as PaymentMethod)}
+            options={[
+              { label: t('common.paymentMethods.cash'), value: 'cash' },
+              { label: t('common.paymentMethods.card'), value: 'card' },
+              { label: t('common.paymentMethods.transfer'), value: 'transfer' },
+              { label: t('common.paymentMethods.other'), value: 'other' },
+            ]}
+            variant="outline"
+          />
+
+          <Button
+            onPress={() => payMutation.mutate()}
+            loading={payMutation.isPending}
+            disabled={!payAmount || Number(payAmount.replace(/,/g, '')) <= 0}
+          >
+            {t('sales.detail.confirmPayment')}
+          </Button>
+        </View>
+      </BottomSheet>
     </View>
   );
 }
